@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida
-  version: "5"
+  version: "6"
 ---
 
 # Registry Verify: check a business against Florida records
@@ -82,6 +82,20 @@ https://docs.myproceeds.xyz/agents/overview.md
 
 Call only the Proceeds charge URL. No other Registry Verify route accepts
 payment, and no API key is issued to buyers.
+
+## Free check over MCP (optional)
+
+If your client is connected to the Registry Verify MCP server at
+https://registryverify.com/mcp (Streamable HTTP, no sign in), you can first
+call its free tool `verify_florida_business` with `business_name`, and
+optionally `max_results` (1 to 5) and `home_state`. It checks the name and
+gives the date of the newest Florida file we hold. While the hourly free
+preview lasts, it also lists the legal names of up to three candidate filings.
+It returns the charge URL for that name with `channel=mcp` added, and with
+`limit` and `home_state` when you sent `max_results` below 5 or `home_state`.
+Pay that URL exactly as returned, without adding parameters; the lookup costs
+the same 0.10 USDC. A name the search cannot answer
+comes back with no charge URL. The MCP server never takes a payment.
 
 ## What one paid answer contains
 

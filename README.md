@@ -7,7 +7,8 @@ There is no account to create and no API key.
 
 This repository holds the agent skill that tells an agent when to use Registry
 Verify, how to pay for a lookup, and how to read the answer. It also has two
-short examples you can run from a terminal.
+short examples you can run from a terminal, and the settings for our MCP
+server.
 
 Website: https://registryverify.com
 
@@ -100,7 +101,8 @@ same file the website serves at https://registryverify.com/skill.md.
   npx skills add ai-interact/registry-verify-agent-skill
   ```
 
-* In Claude Code, as a plugin from this repository:
+* In Claude Code, as a plugin from this repository. The plugin also connects
+  the MCP server described below.
 
   ```
   /plugin marketplace add ai-interact/registry-verify-agent-skill
@@ -110,6 +112,40 @@ same file the website serves at https://registryverify.com/skill.md.
 * By hand: copy the `skills/registry-verify` folder into your agent's skills
   folder, for example `~/.claude/skills/` for Claude Code.
 
+## Use it as an MCP server
+
+https://registryverify.com/mcp is a free MCP server (Streamable HTTP, no sign
+in) with one tool, `verify_florida_business`. It checks the name, gives the
+date of the newest Florida file we hold, lists the legal names of up to three
+candidate filings while the hourly free preview lasts, and returns the charge
+URL for the full record. The full record costs 0.10 USDC, paid at that URL by
+your own x402 wallet, such as the AgentCash MCP server. Claude, Claude Code and
+Cursor have no wallet of their own, so without one the agent stops at the
+charge URL. The MCP server never takes a payment and never sees a wallet or a key.
+
+* Claude Code:
+
+  ```
+  claude mcp add --transport http registry-verify https://registryverify.com/mcp
+  ```
+
+* Cursor: add this entry to `.cursor/mcp.json` in your project, or to
+  `~/.cursor/mcp.json` for all your projects:
+
+  ```json
+  {
+    "mcpServers": {
+      "registry-verify": {
+        "url": "https://registryverify.com/mcp"
+      }
+    }
+  }
+  ```
+
+* Claude: open Customize, then Connectors, choose Add custom connector, and
+  paste `https://registryverify.com/mcp`. Opening that address in a browser
+  shows the same steps.
+
 ## Limits
 
 * Florida only. A search says nothing about other states.
@@ -117,6 +153,7 @@ same file the website serves at https://registryverify.com/skill.md.
   available yet.
 * The data comes from Florida's public daily and quarterly files, so a filing
   made today may not be in it yet. The answer says how new the data is.
+* Not affiliated with the Florida Department of State.
 
 ## More
 
