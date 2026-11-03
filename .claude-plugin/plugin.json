@@ -1,0 +1,14 @@
+{
+  "name": "registry-verify",
+  "version": "4.0.0",
+  "description": "Check a business against Florida's official corporate records before paying, onboarding, or contracting with it. 0.10 USDC per lookup over x402 on Base, with no account or API key.",
+  "author": {
+    "name": "Registry Verify",
+    "email": "hello@registryverify.com",
+    "url": "https://registryverify.com"
+  },
+  "homepage": "https://registryverify.com",
+  "repository": "https://github.com/ai-interact/registry-verify-agent-skill",
+  "license": "MIT",
+  "keywords": ["kyb", "florida", "sunbiz", "business-verification", "x402"]
+}
