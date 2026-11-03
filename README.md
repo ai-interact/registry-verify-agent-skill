@@ -22,7 +22,16 @@ Florida Division of Corporations data, the data behind Sunbiz. Each filing has:
 * the principal city and ZIP, the registered agent, and the officers
 * the home state from Florida's record, with a link to that state's own
   business search when the company was formed elsewhere
+* whether this year's Florida annual report is filed, due or late, with the
+  due date and the September date when Florida dissolves or revokes a filing
+  still missing it
+* its status history: when we first saw it in Florida's daily files and the
+  last status change we recorded
 * the Florida source file the record came from
+
+The answer as a whole also says how current the data is, notes when a Florida
+filing and a filing formed in another state carry the same name, and, when you
+send `home_state`, says how many candidates were formed in that state.
 
 A result is a candidate name match, not proof of who you are dealing with. The
 skill explains how to tell one strong match from several candidates, and what a
