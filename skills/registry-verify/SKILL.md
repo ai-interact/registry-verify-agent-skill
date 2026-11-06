@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida
-  version: "6"
+  version: "8"
 ---
 
 # Registry Verify: check a business against Florida records
@@ -118,6 +118,8 @@ Every paid answer has these parts:
   many of these filings name that state as their home state.
 * `result_interpretation`: one sentence each on what a match, a no match, a
   status, a similarity score, and a home state mean.
+* Warning flags: `flag_rules`, and on each match `flags`, `review_suggested`
+  and `flags_not_checked`. See Warning flags.
 
 ## Read the answer
 
@@ -231,7 +233,9 @@ Every paid answer has these parts:
 ```
 
 Angle brackets mark values that come from the Florida filing or from our
-data. Document 849374 is WALMART INC., a good first test.
+data. Document 849374 is WALMART INC., a good first test. Every paid answer
+also carries the warning flag fields, which the sample under Warning flags
+shows.
 
 ### The filing
 
@@ -299,6 +303,13 @@ formed in another state, has its Florida registration revoked.
     next year.
   * `inactive`: Florida lists the filing as inactive, so it owes no report.
   * `unknown` or `rule_not_checked`: we cannot say. The sentence says why.
+  * With the warning flags, a filing past the dissolution date without this
+    year's report can instead be `listed_active_after_dissolution_date` or,
+    if made 1 October to 31 December last year, `first_report_may_be_next_year`
+    (a later Florida file still lists it as active), or
+    `reinstated_after_dissolution_date` (a later Florida daily file set it back
+    to active). `status_source_file`, `set_active_source_file` and their dates
+    name those files.
 * `due_by` and `dissolution_date` are this year's two dates. `latest_year` and
   `latest_filed_on` are the newest report on file. `current_year_filed` is
   true or false, or null when we cannot tell or no report is owed yet.
@@ -340,6 +351,88 @@ formed in another state, has its Florida registration revoked.
   every answer, because we do not claim that the files we hold contain every
   Florida filing. `dataset.warning` says so in one sentence.
 
+## Warning flags
+
+Every paid answer carries warning flags: a `flag_rules` block, and on each
+match `flags`, `review_suggested` and `flags_not_checked`. An answer without
+`flag_rules` was not checked against these rules, so the missing fields say
+nothing about the company.
+
+A warning flag is a short reason to look closer before you trust a company.
+Each flag states one fact from Florida's record and carries the record or
+event that caused it. A flag is never a fraud verdict, and there is no score.
+
+```json
+{
+  "matches": [
+    {
+      "flags": [
+        {
+          "code": "<rule name, such as agent_changed_recently>",
+          "rule": "<rule name@version, such as agent_changed_recently@1>",
+          "severity": "<high, review, or info>",
+          "sentence": "<one plain sentence about Florida's record>",
+          "date": "<YYYY-MM-DD of the record or event behind the flag, or null>",
+          "source_file": "<Florida file that record or event came from, or null>",
+          "evidence": {
+            "fields": {"filing_type": "<each match field the rule read>"},
+            "events": [{"code": "<Florida event code>", "description": "<Florida's own words>", "filed_on": "<YYYY-MM-DD>", "effective_on": "<YYYY-MM-DD or null>", "source_file": "<Florida event file>"}],
+            "window_days": "<the rule's threshold>",
+            "official_source_url": "https://dos.fl.gov/sunbiz/other-services/data-downloads/"
+          }
+        }
+      ],
+      "review_suggested": "<true or false>",
+      "flags_not_checked": [{"code": "<rule name>", "reason": "<why it could not run>"}],
+      "annual_report": {"status_source_file": "<file our status came from, or null>", "status_source_file_date": "<YYYY-MM-DD or null>", "set_active_source_file": "<daily file that set it back to active, or null>", "set_active_source_file_date": "<YYYY-MM-DD or null>"}
+    }
+  ],
+  "flag_rules": {
+    "version": "1", "as_of": "<YYYY-MM-DD, the day in Florida the rules ran>", "event_history_through": "<YYYY-MM-DD of the newest Florida event file we loaded, or null>",
+    "rules": ["inactive@1", "<every rule that ran>"], "severity_display": {"high": "red", "review": "amber", "info": "grey"}, "documentation_url": "https://registryverify.com/llms.txt"
+  },
+  "result_interpretation": {"flags": "<what an empty flags list means>"}
+}
+```
+
+The evidence shown is `agent_changed_recently`'s; each rule gives the fields
+and events it read.
+
+* `rule` is the `code` and its version. A changed threshold or meaning gets a
+  new version, so you can tell a changed rule from a changed company.
+  `severity` is `high`, `review` or `info`, shown red, amber and grey
+  (`flag_rules.severity_display`), highest first.
+* Quote `sentence`; Florida's own words for an event stay in
+  `evidence.events[].description`. `date` is null when no single date applies.
+* `evidence` also holds the rule's thresholds (`window_days`,
+  `threshold_days`, `min_age_days`, `near_days`), `events[].name` (a rename's
+  new name) and `official_source_url`, Florida's data download page.
+* `review_suggested` is true when a `high` or `review` flag fired on the
+  match. `flags_not_checked` names each rule that could not run, with a
+  `reason`. An empty `flags` list does not mean the company is safe.
+* `flag_rules.as_of` is the day every window counts back from. An event filed
+  after `event_history_through` cannot raise a flag yet.
+
+| Rule | Severity | Fires when |
+|---|---|---|
+| `inactive@1` | high | Florida lists the filing as inactive. The sentence names its last ending event, such as a dissolution, when Florida's event history has one. |
+| `annual_report_missed@1` | high or review | This year's annual report is not on file and the fourth Friday of September has passed. High when our status comes from a Florida file dated before that day, so Florida has probably dissolved the filing, or revoked its Florida registration, since. Review when a later Florida file still lists it as active, or a later Florida daily file set it back to active. |
+| `control_changed_after_reinstatement@1` | high | An active filing at least 730 days old that Florida reinstated in the last 365 days, with a change of registered agent, an amendment to its articles or a name change filed within 180 days of the reinstatement. Someone taking over a dormant company leaves this pattern: confirm the people behind it with the company. |
+| `no_registered_agent@1` | high | Florida's record for this active filing names no registered agent. |
+| `annual_report_late@1` | review | From 2 May to the fourth Friday of September, this year's annual report is not on file. |
+| `reinstated_recently@1` | review | Florida reinstated this active filing, or undid its dissolution, in the last 365 days. |
+| `formed_recently@1` | review | This active filing was formed in Florida, or registered there when formed elsewhere, fewer than 90 days before the lookup. |
+| `agent_changed_recently@1` | review | Florida recorded a statement changing the registered agent or registered office in the last 90 days. Florida records it only for limited liability companies. |
+| `name_changed_recently@1` | review | Florida recorded a change of the filing's name in the last 365 days. |
+| `no_officers_listed@1` | review | This active for-profit corporation or limited liability company (filing type DOMP, FORP, FLAL or FORL) lists no officers, managers or members. |
+| `officer_list_partial@1` | info | Florida says the filing has more than six officers but its data file carries six, so the list is partial. Sunbiz shows the full list. |
+| `name_differs_from_query@1` | info | The filing's name is not the name you sent, even ignoring case, punctuation and the legal ending, so check it is the company you mean. |
+
+`agent_changed_recently` and `name_changed_recently` also run on inactive
+filings. The event rules read the newest 20 events Florida filed for the
+filing from 1 January 2016 to the lookup date. For a code not listed here, act
+on its `severity` and quote its `sentence`.
+
 ## Decide what the answer means
 
 * **One strong match.** One candidate, a close name, and a second fact that
@@ -354,6 +447,11 @@ formed in another state, has its Florida registration revoked.
   `late` or `dissolution_date_passed`. Quote `annual_report.sentence` to the
   user before any payment or contract. Do not say the company is dissolved
   unless Florida's status says so; say what Florida's files show.
+* **Warning flags.** When `review_suggested` is true, quote each `high` and
+  `review` flag's `sentence` to the user before any payment or contract, and
+  suggest confirming those facts with the company. Do not call a flag fraud.
+  When `flags` is empty, say no warning flag fired, not that the company is
+  safe, and name any rule in `flags_not_checked`.
 * **Out of state.** The filing names another state as its home state. The
   company was formed there and registered to do business in Florida. Report
   both: what Florida says about the Florida registration, and that the company
