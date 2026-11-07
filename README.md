@@ -1,5 +1,7 @@
 # Registry Verify agent skill
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/ai-interact-registry-verify-agent-skill-wt9ghm?v=e15181578bcf7bc7ecf353eab93ea0be)](https://m8ven.ai/mcp/ai-interact-registry-verify-agent-skill-wt9ghm?s=readme)
+
 Registry Verify lets an AI agent check a business against Florida's official
 corporate records before it pays, onboards, or signs with that business. The
 agent sends a business name and pays 0.10 USDC for the lookup over x402 on Base.
