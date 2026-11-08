@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida
-  version: "10"
+  version: "11"
 ---
 
 # Registry Verify: check a business against Florida records
@@ -96,8 +96,8 @@ gives the date of the newest Florida file we hold. While the hourly free
 preview lasts, it also lists the legal names of up to three candidate filings.
 It returns the charge URL for that name with `channel=mcp` added, and with
 `limit` and `home_state` when you sent `max_results` below 5 or `home_state`.
-Pay that URL exactly as returned, without adding parameters; the lookup costs
-the same 0.10 USDC. A name made only of words like Inc or LLC, or with no three
+Pay that URL as returned, adding only the facts in Check the facts you were told;
+the lookup costs the same 0.10 USDC. A name made only of words like Inc or LLC, or with no three
 letters or digits in a row, comes back with no charge URL. The preview searches
 current names only. The MCP server never takes a payment.
 
@@ -118,10 +118,9 @@ Every paid answer has these parts:
 * `same_name_across_home_states`: each name that a Florida filing and a filing
   formed in another state both hold in these results. It is an empty list when
   there is none.
-* `home_state_query`: present only when you sent `home_state`. It says how
-  many of these filings name that state as their home state.
-* `result_interpretation`: one sentence each on what a match, a no match, a
-  status, a similarity score, and a home state mean.
+* `home_state_query`: present only when you sent `home_state`. It says how many of these filings name that state as their home state.
+* `result_interpretation`: one sentence each on what a match, a no match, a status, a similarity score, and a home state mean.
+* `claim_check`: present only when you send a fact to check. See Check the facts you were told.
 * Warning flags: `flag_rules`, and on each match `flags`, `review_suggested`
   and `flags_not_checked`. See Warning flags.
 * `shared_records` on each match: how many Florida filings list the same
@@ -464,6 +463,16 @@ Has this company gone by another name, and can an old name find it? The search c
 * A match without `name_history` was not checked for renames, because that read failed, so the missing block says nothing about whether the company was renamed.
 * The list order: current names that score 0.98 or more, then filings whose former name has the same letters and digits as the name you sent, then other current names, then other former name matches. The original name of a filing formed before 2008 and renamed once is not in Florida's bulk files, so such a filing can be found only by its current name.
 
+## Check the facts you were told
+
+When a counterparty gave you an EIN, a ZIP code, an address or a person's name, send `ein`, `zip`, `address` or `person` next to `name`, in the same call for the same 0.10 USDC. The free MCP tool does not take them, so add them to the pay URL it returns. The name still finds the filings, and each match then carries `claim_check` with only the facts you sent. Each fact has `state`, `reason`, `fields_compared`, `source_file`, `source_file_date` and `sentence`. The answer also carries `claim_check` at the top: `facts_supplied`, `facts_not_read`, `filings_compared`, `states`, `source_file_note` and `note`. Every field: https://registryverify.com/florida-company-data#check-the-facts
+
+`state` is `matches` (the fact agrees with Florida's record for this filing), `does_not_match` (Florida's record holds this field and the fact does not agree; the record may only be out of date, so read `source_file_date`), `not_on_file` (Florida's record holds nothing we can compare, so this says nothing for or against the fact) or `not_checked` (we did not compare it, and `reason` and `sentence` say why). We never refuse a paid call over a fact: a value we cannot read comes back as `not_checked`, and the call is still charged.
+
+`ein` is nine digits, compared with the EIN on Florida's record. We never return that EIN, only whether yours matches it. Florida holds one on about 85 of every 100 active filings (a sample of 7,789 from production on 8 November 2026), so `not_on_file` is common. `zip` and `address` are compared with the principal, mailing and registered agent addresses, and `matched_addresses` names which. An address needs a street number and a ZIP code; right street and ZIP with a different or missing unit is `does_not_match`, and `same_building_as` names the address in that building. `person` is a first and a last name, as `LAST, FIRST` or `First Last`, compared with the registered agent and the officers, and `matched_people` says who matched and in what role. A nickname does not match, a company matches only by its whole name, and a person not found on a filing with more than six officers reads `not_on_file` with reason `officer_list_partial`.
+
+A match is evidence, not proof of identity: a fact agrees with Florida's record as of the file named, not that the party you are dealing with is this company or this person. Read the fact on the filing you are checking, because a fact that matches a lower candidate may point to a different company than the name did. The facts travel in the URL of the charge, so Proceeds handles them on the way through, as it does `name`. We hide them in our own logs, keep none of them and never repeat them in the answer.
+
 ## Decide what the answer means
 
 * **One strong match.** One candidate, a close name, and a second fact that agrees (city, ZIP, registered agent, or an officer the counterparty named). Report the document number, status, and source file.
@@ -491,7 +500,7 @@ the time of the call and the payment id.
 ## Limits
 
 * Florida only. At most five candidate filings per call.
-* Search is by business name. EIN, address, and officer checks are not available yet. Shared record counts never say which filings share a record.
+* Search is by business name. An EIN, address or person can only be checked against the filings a name finds; none of them finds a filing on its own. Shared record counts never say which filings share a record.
 * The home state comes from Florida's record of the company, not from the other state's register. We do not check whether the company is in good standing where it was formed.
 * The annual report status comes from Florida's files as we last loaded them, so a report filed after that file may not show yet.
 * Our status change history starts on `history_begins_on`. We hold no changes from before that date.
