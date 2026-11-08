@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida
-  version: "9"
+  version: "10"
 ---
 
 # Registry Verify: check a business against Florida records
@@ -281,7 +281,7 @@ formed in another state, has its Florida registration revoked.
   * With the warning flags, a filing past the dissolution date without this year's report can instead be `listed_active_after_dissolution_date` or, if made 1 October to 31 December last year, `first_report_may_be_next_year` (a later Florida file still lists it as active), or `reinstated_after_dissolution_date` (a later Florida daily file set it back to active). `status_source_file`, `set_active_source_file` and their dates name those files.
 * `due_by` and `dissolution_date` are this year's two dates. `latest_year` and `latest_filed_on` are the newest report on file. `current_year_filed` is true or false, or null when we cannot tell or no report is owed yet.
 * `source_file` and `source_file_date` name the Florida file the reports were read from. `data_refreshed_at` is when our last import finished. `rule_sources` links the Florida Statutes sections and the Sunbiz page the rule comes from.
-* `annual_reports` is the raw list Florida's record holds: up to its last three reports, each with a year and a filing date. Florida often repeats the same report twice in that list.
+* `annual_reports` is the list Florida's record holds: up to its last three reports, each with a year and a filing date. A report the record repeats is listed once, so the list can be shorter than three. Two entries for one year are a report and its amendment.
 
 ### Status history
 
@@ -291,6 +291,8 @@ formed in another state, has its Florida registration revoked.
 ### The data behind the answer
 
 * `dataset.source_file_date_end` is the date of the newest Florida daily file we hold, and `dataset.source_file_date_start` the oldest. `dataset.latest_event_source_file` and `dataset.latest_event_file_date` name the newest Florida status event file we loaded.
+* `dataset.status_lag` says how a status can lag. Between Florida's quarterly files a status comes from Florida's daily event files, and those files miss some events, so a filing can show as active after it closed, or as inactive after it was reinstated, until the next quarterly file. The same gap can leave a warning flag out. When a decision depends on status, tell the user and suggest checking the filing on Florida's Sunbiz site.
+* `dataset.event_files_repeated` lists the days since the last quarterly file on which Florida posted the previous day's event file again, oldest first. Events filed around those days are the most likely to be missing. It is null when we could not read them.
 * `dataset.last_ingested_at` is when our last import finished and `dataset.source_retrieved_at` when we last downloaded from Florida. `dataset.stale` is true when that last import finished more than seven days ago. If it is true, tell the user how old the data is.
 * `dataset.coverage`, `dataset.quarterly_snapshot_loaded`, `dataset.record_count` and the file counts say what we searched. `dataset.expected_source_records`, `dataset.imported_records`, `dataset.quarantined_records` and `dataset.import_status` describe our last import.
 * `dataset.complete_registry` and `dataset.authoritative_no_match` are false on every answer, because we do not claim that the files we hold contain every Florida filing. `dataset.warning` says so in one sentence.
