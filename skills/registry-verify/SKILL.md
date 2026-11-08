@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida
-  version: "12"
+  version: "13"
 ---
 
 # Registry Verify: check a business against Florida records
@@ -380,18 +380,18 @@ flags. `flag_rules.rules` does not list them: each names its rule in `rule`.
 
 ## Name search
 
-Will the search find the company when the name is not written exactly as Florida holds it? It sets aside case, punctuation, The at the start and the legal ending, writes common abbreviations out, and finds a filing when the legal ending differs, when two to four words come in another order, or when a word is misspelled. A common name such as Florida gets an answer.
-
-`similarity_basis` is `name_match_score`, and `similarity` means:
+Will the search find the company when the name is not written exactly as Florida holds it? It sets aside case, punctuation, The at the start and the legal ending, writes common abbreviations out, and finds a filing when the legal ending differs, when two to four words come in another order, or when a word is misspelled. A common name such as Florida gets an answer. `similarity_basis` is `name_match_score`, and `similarity` means:
 
 * 1.00: the same name apart from the legal ending. Inc for an LLC still scores 1.00.
 * 0.99: the same name, when the filing has more legal ending words than you sent, such as KROGER COMPANY, INC. for Kroger.
 * 0.98: the same letters spaced differently, such as WAL MART for Walmart.
 * Below 0.98: the names are less alike. The score weighs how much of the name you sent the filing's name holds. An open filing gets 0.03 more, up to 0.979.
 
-When this search cannot answer, an older search does: `similarity_basis` says `entity_name_similarity`, `similarity` compares the letters of the two names, and these meanings do not apply. A name needs at least 2 letters or digits, or it gets `422` and no search runs.
+When this search cannot answer, an older search does: `similarity_basis` says `entity_name_similarity`, `similarity` compares the letters of the two names, and these meanings do not apply. A name needs at least 2 letters or digits, or it gets `422` and no search runs. A brand word alone, such as Publix, can still list other filings that share the word first, so send the full legal name when you have it.
 
-A brand word alone, such as Publix, can still list other filings that share the word first, so send the full legal name when you have it.
+How often is the right filing first? We measured it on 8 November 2026 on about 13 million filings, with the search a paid lookup runs and the five answers it lists at most. We drew filings at random and rewrote 310 names the way a buyer might write them: the legal ending dropped or changed, punctuation, & or and, The at the start, an abbreviation, a brand without its generic last word, or one of several near twins. The search's rules were not tuned on these names. The right filing came first for 307 of 310 (99.0%, 95% interval 97.1% to 99.7%) and was among the five answers for 308 of 310 (99.4%). 92 of 93 open filings came first. Read that number narrowly. In 240 of the 310 the name sent has the same letters as one filing and no other, so the search's first lookup finds that filing by design. The other 70 test the ranking: the right filing came first for 67 of 70 (95.7%, 95% interval 88.1% to 98.6%). That is 30 of 30 brand names, each the start of only one filing's name; 29 of 30 near twins that only the legal ending tells apart; and 8 of 10 abbreviations we do not write out, such as Amer or Med.
+
+This test does not measure a name more than one filing holds: 2,221,284 of 13,046,913 filings share their letters with another filing, counted on a full copy of the registry from 3 November 2026, no one filing is the right answer for those names, and an answer lists 5 at most, so compare the address, officers and dates. Nor does it measure misspelled names, former names or trade names; words real buyers typed, because a program wrote these; a company with no Florida filing, where the search still lists the closest names; a lookup with `home_state`; an answer from the older search; or any later day. To repeat it, take the test names from https://registryverify.com/name-match-set.csv and our answers from https://registryverify.com/name-match-results.json. Send each query to a paid lookup, which costs 31.00 USDC for all 310, and compare the first match's `doc_number` with `expected_doc_number`. We ran the search in the database, so no paid record was written.
 
 ## Shared records
 
