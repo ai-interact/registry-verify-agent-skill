@@ -1,6 +1,6 @@
 ---
 name: registry-verify
-description: Florida business entity lookup in official Florida Division of Corporations records, the data behind Sunbiz. Send a business name and get candidate matches with document number, status, filing type and date, registered agent, officers, home state, annual report status, status change history, and the Florida source file for each record. Use it for KYB before paying, onboarding, or contracting with a Florida company. Florida only. A result is a candidate name match, not proof of identity. 0.10 USDC per lookup over x402 on Base. Also use it when a user asks whether a company is registered or active in Florida, whether it has filed its Florida annual report, or about an out of state company that says it does business in Florida.
+description: Florida business entity lookup in official Florida Division of Corporations records, the data behind Sunbiz. Send a business name and get candidate matches with document number, status, filing type and date, registered agent, officers, home state, annual report status, status change history, and the Florida source file for each record. Use it for KYB before paying, onboarding, or contracting with a Florida company. Florida only. A result is a candidate name match, not proof of identity. 0.10 USDC per lookup over x402 on Base. Also use it when a user asks whether a company is registered or active in Florida, whether it has filed its Florida annual report, about an out of state company that says it does business in Florida, or holds an old name for a company.
 license: Proprietary. Florida records are public; answers are provided under the Registry Verify terms.
 compatibility: Needs internet access and an x402 version 2 client with a funded USDC wallet on the network named in the 402 response, which is Base mainnet.
 metadata:
@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida
-  version: "8"
+  version: "9"
 ---
 
 # Registry Verify: check a business against Florida records
@@ -30,6 +30,9 @@ Business check.
   report, or whether Florida may dissolve it for missing the report.
 * When an out of state company (for example "a Delaware LLC") says it does
   business in Florida. Florida registers those as foreign filings.
+* When a user holds an old name for a company, such as one on an old invoice.
+* When a user asks whether other companies list the same address, registered
+  agent or officer as this one.
 
 ## When not to use it
 
@@ -94,8 +97,9 @@ preview lasts, it also lists the legal names of up to three candidate filings.
 It returns the charge URL for that name with `channel=mcp` added, and with
 `limit` and `home_state` when you sent `max_results` below 5 or `home_state`.
 Pay that URL exactly as returned, without adding parameters; the lookup costs
-the same 0.10 USDC. A name the search cannot answer
-comes back with no charge URL. The MCP server never takes a payment.
+the same 0.10 USDC. A name made only of words like Inc or LLC, or with no three
+letters or digits in a row, comes back with no charge URL. The preview searches
+current names only. The MCP server never takes a payment.
 
 ## What one paid answer contains
 
@@ -120,6 +124,11 @@ Every paid answer has these parts:
   status, a similarity score, and a home state mean.
 * Warning flags: `flag_rules`, and on each match `flags`, `review_suggested`
   and `flags_not_checked`. See Warning flags.
+* `shared_records` on each match: how many Florida filings list the same
+  address, registered agent or officer. See Shared records.
+* Former names: `found_by`, `matched_name`, `renamed_on` and `name_history` on
+  each match, and `former_names_searched` and `former_name_coverage` for the
+  answer. See Former names.
 
 ## Read the answer
 
@@ -235,50 +244,23 @@ Every paid answer has these parts:
 Angle brackets mark values that come from the Florida filing or from our
 data. Document 849374 is WALMART INC., a good first test. Every paid answer
 also carries the warning flag fields, which the sample under Warning flags
-shows.
+shows, and the fields the samples under Shared records and Former names show.
 
 ### The filing
 
-* `doc_number` is the Florida document number. Quote it when you report the
-  result. Anyone can check it on Sunbiz.
-* `status` is what Florida reports: `A` active, `I` inactive.
-  `status_as_reported_by` names who reports it, the Florida Division of
-  Corporations.
-* `filing_type` starting with `FOR` means an out of state company registered
-  in Florida. `file_date` is then the date it registered in Florida, not the
-  date it was formed.
-* `officers` lists up to six officers or managers with their titles and
-  addresses as Florida's record holds them. `more_than_six_officers` is true
-  when Florida's record says the filing has more.
-* `similarity` compares names only. It runs from 0 to 1. It is not a
-  confidence that you found the right company. `similarity_basis` says what
-  was compared.
-* `source_file` and `provenance.file` name the Florida source file the record
-  came from. `provenance` also names the publisher and links the Division's
-  data download page.
+* `doc_number` is the Florida document number. Quote it when you report the result. Anyone can check it on Sunbiz.
+* `status` is what Florida reports: `A` active, `I` inactive. `status_as_reported_by` names who reports it, the Florida Division of Corporations.
+* `filing_type` starting with `FOR` means an out of state company registered in Florida. `file_date` is then the date it registered in Florida, not the date it was formed.
+* `officers` lists up to six officers or managers with their titles and addresses as Florida's record holds them. `more_than_six_officers` is true when Florida's record says the filing has more.
+* `similarity` compares names only. It runs from 0 to 1. It is not a confidence that you found the right company. `similarity_basis` says what was compared. Name search says what each score means.
+* `source_file` and `provenance.file` name the Florida source file the record came from. `provenance` also names the publisher and links the Division's data download page.
 
 ### Home state
 
-* `home_state` is the home state Florida's own record names for the filing. For
-  a Florida company it is Florida. For an out of state company it is where the
-  company was formed, with the office that keeps that register and a link to
-  its official business search. Read `home_state.sentence` and quote it.
-  `state_country` is the raw code as Florida's record holds it.
-* `home_state.code_decoded` is false when Florida's record carries a code that
-  is not a United States state code, `OC` among them. Florida publishes the
-  field but not the codes it uses, so we return the code and say we do not know
-  what it means. Do not guess it, and do not tell the user it is a country.
-  Read the filing's `principal_city` and `principal_zip` instead, which are
-  already in the answer, and say where Florida's record puts the company rather
-  than what the code might stand for.
-* `same_name_across_home_states` lists each name that a Florida filing and an
-  out of state filing in these results share once case, punctuation, and the
-  legal form are removed. That often means one business registered twice, once
-  where it was formed and once in Florida. It can also be two unrelated
-  businesses, so check a second fact before you merge them.
-* `home_state_query` is present only when you sent `home_state`. It says how
-  many of these filings name that state and, when none does, that no Florida
-  registration was found for a company formed there.
+* `home_state` is the home state Florida's own record names for the filing. For a Florida company it is Florida. For an out of state company it is where the company was formed, with the office that keeps that register and a link to its official business search. Read `home_state.sentence` and quote it. `state_country` is the raw code as Florida's record holds it.
+* `home_state.code_decoded` is false when Florida's record carries a code that is not a United States state code, `OC` among them. Florida publishes the field but not the codes it uses, so we return the code and say we do not know what it means. Do not guess it, and do not tell the user it is a country. Read the filing's `principal_city` and `principal_zip` instead, which are already in the answer, and say where Florida's record puts the company rather than what the code might stand for.
+* `same_name_across_home_states` lists each name that a Florida filing and an out of state filing in these results share once case, punctuation, and the legal form are removed. That often means one business registered twice, once where it was formed and once in Florida. It can also be two unrelated businesses, so check a second fact before you merge them.
+* `home_state_query` is present only when you sent `home_state`. It says how many of these filings name that state and, when none does, that no Florida registration was found for a company formed there.
 
 ### Annual report
 
@@ -287,69 +269,31 @@ after the year a filing was made. A filing still missing it on the third Friday
 of September is dissolved on the fourth Friday of September, or, for a company
 formed in another state, has its Florida registration revoked.
 
-* `annual_report.sentence` says what Florida's files show about this year's
-  report. Read it and quote it.
+* `annual_report.sentence` says what Florida's files show about this year's report. Read it and quote it.
 * `annual_report.state` is one of:
-  * `filed`: this year's report is on file. The sentence says when, and
-    whether it came after the 1 May deadline.
+  * `filed`: this year's report is on file. The sentence says when, and whether it came after the 1 May deadline.
   * `due`: this year's report is not on file yet and 1 May has not passed.
-  * `late`: 1 May has passed and this year's report is not on file. Florida
-    dissolves or revokes on `annual_report.dissolution_date` if it is still
-    missing.
-  * `dissolution_date_passed`: that September date has gone by without the
-    report. The status in our answer may not show the dissolution until we
-    load Florida's next quarterly file, and the sentence says so.
-  * `not_due_yet`: the filing was made this year, so its first report is due
-    next year.
+  * `late`: 1 May has passed and this year's report is not on file. Florida dissolves or revokes on `annual_report.dissolution_date` if it is still missing.
+  * `dissolution_date_passed`: that September date has gone by without the report. The status in our answer may not show the dissolution until we load Florida's next quarterly file, and the sentence says so.
+  * `not_due_yet`: the filing was made this year, so its first report is due next year.
   * `inactive`: Florida lists the filing as inactive, so it owes no report.
   * `unknown` or `rule_not_checked`: we cannot say. The sentence says why.
-  * With the warning flags, a filing past the dissolution date without this
-    year's report can instead be `listed_active_after_dissolution_date` or,
-    if made 1 October to 31 December last year, `first_report_may_be_next_year`
-    (a later Florida file still lists it as active), or
-    `reinstated_after_dissolution_date` (a later Florida daily file set it back
-    to active). `status_source_file`, `set_active_source_file` and their dates
-    name those files.
-* `due_by` and `dissolution_date` are this year's two dates. `latest_year` and
-  `latest_filed_on` are the newest report on file. `current_year_filed` is
-  true or false, or null when we cannot tell or no report is owed yet.
-* `source_file` and `source_file_date` name the Florida file the reports were
-  read from. `data_refreshed_at` is when our last import finished.
-  `rule_sources` links the Florida Statutes sections and the Sunbiz page the
-  rule comes from.
-* `annual_reports` is the raw list Florida's record holds: up to its last three
-  reports, each with a year and a filing date. Florida often repeats the same
-  report twice in that list.
+  * With the warning flags, a filing past the dissolution date without this year's report can instead be `listed_active_after_dissolution_date` or, if made 1 October to 31 December last year, `first_report_may_be_next_year` (a later Florida file still lists it as active), or `reinstated_after_dissolution_date` (a later Florida daily file set it back to active). `status_source_file`, `set_active_source_file` and their dates name those files.
+* `due_by` and `dissolution_date` are this year's two dates. `latest_year` and `latest_filed_on` are the newest report on file. `current_year_filed` is true or false, or null when we cannot tell or no report is owed yet.
+* `source_file` and `source_file_date` name the Florida file the reports were read from. `data_refreshed_at` is when our last import finished. `rule_sources` links the Florida Statutes sections and the Sunbiz page the rule comes from.
+* `annual_reports` is the raw list Florida's record holds: up to its last three reports, each with a year and a filing date. Florida often repeats the same report twice in that list.
 
 ### Status history
 
-* `history` holds the first date we saw the filing in Florida's daily files
-  (`first_seen_on`) and its most recent status change, if we recorded one
-  (`last_status_change`, with the date, the new status, and the daily file it
-  came from). Both are null when we recorded nothing.
-* `history_begins_on` is the first date our history covers, and
-  `older_than_history` is true when the filing is older than that. Read
-  `history.note`: no recorded change does not mean nothing changed before
-  `history_begins_on`. The top level `history_begins_on` and `history_note`
-  say the same for the whole answer.
+* `history` holds the first date we saw the filing in Florida's daily files (`first_seen_on`) and its most recent status change, if we recorded one (`last_status_change`, with the date, the new status, and the daily file it came from). Both are null when we recorded nothing.
+* `history_begins_on` is the first date our history covers, and `older_than_history` is true when the filing is older than that. Read `history.note`: no recorded change does not mean nothing changed before `history_begins_on`. The top level `history_begins_on` and `history_note` say the same for the whole answer.
 
 ### The data behind the answer
 
-* `dataset.source_file_date_end` is the date of the newest Florida daily file we
-  hold, and `dataset.source_file_date_start` the oldest.
-  `dataset.latest_event_source_file` and `dataset.latest_event_file_date` name
-  the newest Florida status event file we loaded.
-* `dataset.last_ingested_at` is when our last import finished and
-  `dataset.source_retrieved_at` when we last downloaded from Florida.
-  `dataset.stale` is true when that last import finished more than seven days
-  ago. If it is true, tell the user how old the data is.
-* `dataset.coverage`, `dataset.quarterly_snapshot_loaded`, `dataset.record_count`
-  and the file counts say what we searched. `dataset.expected_source_records`,
-  `dataset.imported_records`, `dataset.quarantined_records` and
-  `dataset.import_status` describe our last import.
-* `dataset.complete_registry` and `dataset.authoritative_no_match` are false on
-  every answer, because we do not claim that the files we hold contain every
-  Florida filing. `dataset.warning` says so in one sentence.
+* `dataset.source_file_date_end` is the date of the newest Florida daily file we hold, and `dataset.source_file_date_start` the oldest. `dataset.latest_event_source_file` and `dataset.latest_event_file_date` name the newest Florida status event file we loaded.
+* `dataset.last_ingested_at` is when our last import finished and `dataset.source_retrieved_at` when we last downloaded from Florida. `dataset.stale` is true when that last import finished more than seven days ago. If it is true, tell the user how old the data is.
+* `dataset.coverage`, `dataset.quarterly_snapshot_loaded`, `dataset.record_count` and the file counts say what we searched. `dataset.expected_source_records`, `dataset.imported_records`, `dataset.quarantined_records` and `dataset.import_status` describe our last import.
+* `dataset.complete_registry` and `dataset.authoritative_no_match` are false on every answer, because we do not claim that the files we hold contain every Florida filing. `dataset.warning` says so in one sentence.
 
 ## Warning flags
 
@@ -431,52 +375,113 @@ and events it read.
 `agent_changed_recently` and `name_changed_recently` also run on inactive
 filings. The event rules read the newest 20 events Florida filed for the
 filing from 1 January 2016 to the lookup date. For a code not listed here, act
-on its `severity` and quote its `sentence`.
+on its `severity` and quote its `sentence`. Shared records lists four more
+flags. `flag_rules.rules` does not list them: each names its rule in `rule`.
+
+## Name search
+
+Will the search find the company when the name is not written exactly as Florida holds it? It sets aside case, punctuation, The at the start and the legal ending, writes common abbreviations out, and finds a filing when the legal ending differs, when two to four words come in another order, or when a word is misspelled. A common name such as Florida gets an answer.
+
+`similarity_basis` is `name_match_score`, and `similarity` means:
+
+* 1.00: the same name apart from the legal ending. Inc for an LLC still scores 1.00.
+* 0.99: the same name, when the filing has more legal ending words than you sent, such as KROGER COMPANY, INC. for Kroger.
+* 0.98: the same letters spaced differently, such as WAL MART for Walmart.
+* Below 0.98: the names are less alike. The score weighs how much of the name you sent the filing's name holds. An open filing gets 0.03 more, up to 0.979.
+
+When this search cannot answer, an older search does: `similarity_basis` says `entity_name_similarity`, `similarity` compares the letters of the two names, and these meanings do not apply. A name needs at least 2 letters or digits, or it gets `422` and no search runs.
+
+A brand word alone, such as Publix, can still list other filings that share the word first, so send the full legal name when you have it.
+
+## Shared records
+
+Do other Florida companies list the same address, registered agent or officer as this one? Every paid answer carries `shared_records` on each match. A match without `shared_records` was not checked against these counts, so the missing block says nothing about the company.
+
+We return counts only. We never list which other filings share these records. A shared record is a reason to look closer, not proof of a problem. A flag is never a fraud verdict, and there is no score.
+
+```json
+{
+  "matches": [
+    {
+      "shared_records": {
+        "state": "<counted, not_counted, or unavailable>",
+        "counted_over": "all Florida filings in our copy, active and inactive",
+        "as_of": "<YYYY-MM-DD of the Florida file the counts reach, or null>",
+        "as_of_source_file": "<that Florida file, or null>",
+        "principal_address": {"normalized": "<the address as we count it>", "filings": "<filings at this address, this one included>", "active": "<how many of them are open>", "other_filings": "<the same, leaving this filing out>", "other_active": "<the same, leaving this filing out>", "kind": "<street_address, registered_agent_address, po_box, or mail_drop_pattern>", "agent_name": "<the registered agent at this address, or null>", "building": {"normalized": "<the address without its unit>", "filings": "<filings in the building>", "active": "<how many of them are open>", "units": "<different unit numbers>"}, "sentence": "<plain sentence about this address>"},
+        "registered_agent": {"normalized": "<agent name>", "zip": "<ZIP of a person agent, or null>", "agent_type": "<company or person>", "filings": "<filings naming this agent>", "active": "<how many of them are open>", "other_filings": "<the same, leaving this filing out>", "other_active": "<the same, leaving this filing out>", "kind": "<commercial_registered_agent, professional_registered_agent, company, or person>", "sentence": "<plain sentence about this agent>"},
+        "officers": [{"name": "<officer name>", "zip": "<ZIP>", "officer_type": "<company or person>", "filings": "<filings listing this officer>", "active": "<how many of them are open>", "other_filings": "<the same, leaving this filing out>", "other_active": "<the same, leaving this filing out>", "sentence": "<plain sentence about this officer>"}],
+        "flags": [{"code": "<flag name>", "rule": "<flag name@version>", "severity": "review", "sentence": "<one plain sentence>", "date": "<as_of>", "source_file": "<as_of_source_file>", "evidence": {"field": "<principal_address, registered_agent, or officers>", "normalized": "<the record>", "name": "<officer name>", "zip": "<ZIP>", "filings": "<count>", "active": "<count>", "other_active": "<count>", "threshold": "<the rule's minimum>", "busiest_officer_other_active": "<count>", "building_units": "<count>", "building": "<the address without its unit>", "building_filings": "<count>", "units": "<count>", "threshold_filings": "<the rule's minimum>", "threshold_units_per_filing": "<the rule's minimum>", "counts_as_of": "<as_of>", "counts_source_file": "<as_of_source_file>", "official_source_url": "https://dos.fl.gov/sunbiz/other-services/data-downloads/"}}],
+        "note": "<counts only, and a reason to look closer>",
+        "sentence": "<only when state is not_counted or unavailable>",
+        "flags_not_checked": [{"code": "<flag name>", "reason": "<only when state is unavailable>"}]
+      }
+    }
+  ]
+}
+```
+
+* `state` is `counted`; `not_counted`, when we hold no principal address with a ZIP code, registered agent or officer with a ZIP code to count, so no flag below can fire; or `unavailable`, when the counts could not be read for this answer. The block then holds only `state`, `sentence`, `flags` and `flags_not_checked`, and the four flags are also listed under the match's `flags_not_checked`.
+* `active` counts the open filings: the ones Florida lists as active. `other_filings` and `other_active` leave this filing out. Quote each `sentence`.
+* `kind` says what a count means. `registered_agent_address`, `commercial_registered_agent` and `professional_registered_agent` say nothing about the company, because many companies share them. `mail_drop_pattern` is a building with at least 300 filings and at least one unit number per two filings. A commercial or professional agent is agent for at least 1,000 filings.
+
+| Rule | Severity | Fires when |
+|---|---|---|
+| `principal_address_shared_by_many@1` | review | 100 or more other open filings list this exact principal address, it is not a registered agent's address or a post office box, no officer of this filing is an officer of at least half as many open filings, and the address has a unit or its building has fewer than 10 units. |
+| `principal_address_is_mailbox_pattern@2` | review | The building holds 300 or more filings under at least one unit number per two filings. |
+| `person_agent_for_many@1` | review | A person who is registered agent for fewer than 1,000 filings is agent for 100 or more other open filings. |
+| `officer_on_many@1` | review | One officer, by name and ZIP code, is an officer of 50 or more other open filings. |
+
+## Former names
+
+Has this company gone by another name, and can an old name find it? The search covers the former names we hold as well as current names, so a name from an old invoice can find a filing renamed since.
+
+```json
+{
+  "matches": [
+    {
+      "found_by": "<current_name or former_name>",
+      "matched_name": "<only for former_name: the former name that matched>",
+      "renamed_on": "<only for former_name: YYYY-MM-DD it stopped being used, or null>",
+      "name_history": {
+        "former_names": [{"name": "<former name>", "used_until": "<YYYY-MM-DD or null>", "renamed_by": "<Florida's own words for the change, or null>", "source_file": "<Florida file>"}],
+        "renames_recorded": "<how many renames we hold>",
+        "last_renamed_on": "<YYYY-MM-DD or null>",
+        "earlier_name_unknown": "<true when Florida's bulk files lack the name before a rename>",
+        "note": "<plain sentences about the names>"
+      }
+    }
+  ],
+  "former_names_searched": "<true or false>",
+  "former_name_coverage": "<plain sentence on what the former names cover>"
+}
+```
+
+* `former_names_searched` is false when only current names were matched for this answer. `found_by` is present when it is true. Quote `former_name_coverage` and `name_history.note`.
+* `former_names` lists newest first, at most 10. A former name match's `similarity` is scored on that name, times 0.97.
+* A match without `name_history` was not checked for renames, because that read failed, so the missing block says nothing about whether the company was renamed.
+* The list order: current names that score 0.98 or more, then filings whose former name has the same letters and digits as the name you sent, then other current names, then other former name matches. The original name of a filing formed before 2008 and renamed once is not in Florida's bulk files, so such a filing can be found only by its current name.
 
 ## Decide what the answer means
 
-* **One strong match.** One candidate, a close name, and a second fact that
-  agrees (city, ZIP, registered agent, or an officer the counterparty named).
-  Report the document number, status, and source file.
-* **Several candidates.** Do not pick one on name alone. Compare city, ZIP,
-  officers, and filing date with what you know, or ask the user.
-* **Inactive.** Florida reports the filing as inactive. Tell the user before
-  any payment or contract. Do not call the business closed; say what Florida
-  reports.
-* **Annual report late or past the dissolution date.** `annual_report.state` is
-  `late` or `dissolution_date_passed`. Quote `annual_report.sentence` to the
-  user before any payment or contract. Do not say the company is dissolved
-  unless Florida's status says so; say what Florida's files show.
-* **Warning flags.** When `review_suggested` is true, quote each `high` and
-  `review` flag's `sentence` to the user before any payment or contract, and
-  suggest confirming those facts with the company. Do not call a flag fraud.
-  When `flags` is empty, say no warning flag fired, not that the company is
-  safe, and name any rule in `flags_not_checked`.
-* **Out of state.** The filing names another state as its home state. The
-  company was formed there and registered to do business in Florida. Report
-  both: what Florida says about the Florida registration, and that the company
-  itself is held in that state's register, which `home_state.official_search_url`
-  links to. Florida's record does not say how the company stands at home.
-* **Asked for a home state and none matched.** You sent `home_state` and no
-  filing names it. Say that no Florida registration was found for a company
-  formed in that state under this name. A company formed elsewhere that does
-  business in Florida is normally registered here as a foreign filing, so this
-  is a real answer to the user's question, not a failed lookup.
-* **No match.** No candidate was found in the covered Florida files. That does
-  not prove the business does not exist. Try the exact legal name with its
-  suffix (LLC, INC, CORP), check the spelling, and remember the company may be
-  registered only in another state.
-* **Always** say a registry match is evidence about a filing, not proof of who
-  you are dealing with.
+* **One strong match.** One candidate, a close name, and a second fact that agrees (city, ZIP, registered agent, or an officer the counterparty named). Report the document number, status, and source file.
+* **Several candidates.** Do not pick one on name alone. Compare city, ZIP, officers, and filing date with what you know, or ask the user.
+* **Inactive.** Florida reports the filing as inactive. Tell the user before any payment or contract. Do not call the business closed; say what Florida reports.
+* **Annual report late or past the dissolution date.** `annual_report.state` is `late` or `dissolution_date_passed`. Quote `annual_report.sentence` to the user before any payment or contract. Do not say the company is dissolved unless Florida's status says so; say what Florida's files show.
+* **Warning flags.** When `review_suggested` is true, quote each `high` and `review` flag's `sentence` to the user before any payment or contract, and suggest confirming those facts with the company. Do not call a flag fraud. When `flags` is empty, say no warning flag fired, not that the company is safe, and name any rule in `flags_not_checked`.
+* **A shared record.** Read `kind` first, then quote the `sentence`. Report the count as a reason to look closer, not proof of a problem. The answer cannot tell you which other filings share the record.
+* **Found by a former name.** `found_by` is `former_name`. Say that the filing has another legal name now, quote `name_history.note`, and check a second fact before you treat it as the company you mean.
+* **Out of state.** The filing names another state as its home state. The company was formed there and registered to do business in Florida. Report both: what Florida says about the Florida registration, and that the company itself is held in that state's register, which `home_state.official_search_url` links to. Florida's record does not say how the company stands at home.
+* **Asked for a home state and none matched.** You sent `home_state` and no filing names it. Say that no Florida registration was found for a company formed in that state under this name. A company formed elsewhere that does business in Florida is normally registered here as a foreign filing, so this is a real answer to the user's question, not a failed lookup.
+* **No match.** No candidate was found in the covered Florida files. That does not prove the business does not exist. Try the exact legal name with its suffix (LLC, INC, CORP), check the spelling, and remember the company may be registered only in another state. Read `former_name_coverage` for what the former names we hold cover.
+* **Always** say a registry match is evidence about a filing, not proof of who you are dealing with.
 
 ## Errors
 
 * `402`: no payment, or the payment failed. Nothing was returned.
-* `422`: the name is missing, shorter than 2 or longer than 200 characters, or
-  too broad. Add more of the legal name and try again.
+* `422`: the name is missing, shorter than 2 or longer than 200 characters, has fewer than 2 letters or digits, or is too broad. Add more of the legal name and try again. Proceeds settles the payment before it forwards the call, so check the name before you pay.
 * `429`: too many requests. Wait for the `Retry-After` seconds.
-* `502` or `504`: our data service failed. Each retry is a new payment, so
-  retry at most once.
+* `502` or `504`: our data service failed. Each retry is a new payment, so retry at most once.
 
 If you were charged for an error answer, email hello@registryverify.com with
 the time of the call and the payment id.
@@ -484,19 +489,11 @@ the time of the call and the payment id.
 ## Limits
 
 * Florida only. At most five candidate filings per call.
-* Search is by business name. EIN, address, and officer checks are not
-  available yet.
-* The home state comes from Florida's record of the company, not from the other
-  state's register. We do not check whether the company is in good standing
-  where it was formed.
-* The annual report status comes from Florida's files as we last loaded them,
-  so a report filed after that file may not show yet.
-* Our status change history starts on `history_begins_on`. We hold no changes
-  from before that date.
-* Data comes from Florida's public daily and quarterly files. To confirm a
-  filing made today, ask a person to open Florida's own search in a browser:
-  https://search.sunbiz.org/Inquiry/CorporationSearch/ByName (it refuses
-  automated clients).
+* Search is by business name. EIN, address, and officer checks are not available yet. Shared record counts never say which filings share a record.
+* The home state comes from Florida's record of the company, not from the other state's register. We do not check whether the company is in good standing where it was formed.
+* The annual report status comes from Florida's files as we last loaded them, so a report filed after that file may not show yet.
+* Our status change history starts on `history_begins_on`. We hold no changes from before that date.
+* Data comes from Florida's public daily and quarterly files. To confirm a filing made today, ask a person to open Florida's own search in a browser: https://search.sunbiz.org/Inquiry/CorporationSearch/ByName (it refuses automated clients).
 
 More detail: https://registryverify.com/llms.txt
 OpenAPI description of the call: https://registryverify.com/openapi.json
