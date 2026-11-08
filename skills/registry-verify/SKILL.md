@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida
-  version: "11"
+  version: "12"
 ---
 
 # Registry Verify: check a business against Florida records
@@ -38,8 +38,7 @@ Business check.
 
 * The business has no Florida connection. Coverage is Florida only, so a
   search tells you nothing about other states.
-* You need to verify a person, screen sanctions, or check credit. This is a
-  registry lookup only.
+* You need to confirm who a person is, screen sanctions, or check credit. The `person` check only says whether a name is on a filing.
 * You have no budget for the call. Every lookup is a payment. If the user has
   not authorized spending, ask before you pay.
 
@@ -471,7 +470,7 @@ When a counterparty gave you an EIN, a ZIP code, an address or a person's name, 
 
 `ein` is nine digits, compared with the EIN on Florida's record. We never return that EIN, only whether yours matches it. Florida holds one on about 85 of every 100 active filings (a sample of 7,789 from production on 8 November 2026), so `not_on_file` is common. `zip` and `address` are compared with the principal, mailing and registered agent addresses, and `matched_addresses` names which. An address needs a street number and a ZIP code; right street and ZIP with a different or missing unit is `does_not_match`, and `same_building_as` names the address in that building. `person` is a first and a last name, as `LAST, FIRST` or `First Last`, compared with the registered agent and the officers, and `matched_people` says who matched and in what role. A nickname does not match, a company matches only by its whole name, and a person not found on a filing with more than six officers reads `not_on_file` with reason `officer_list_partial`.
 
-A match is evidence, not proof of identity: a fact agrees with Florida's record as of the file named, not that the party you are dealing with is this company or this person. Read the fact on the filing you are checking, because a fact that matches a lower candidate may point to a different company than the name did. The facts travel in the URL of the charge, so Proceeds handles them on the way through, as it does `name`. We hide them in our own logs, keep none of them and never repeat them in the answer.
+A match is evidence, not proof of identity: a fact agrees with Florida's record as of the file named, not that the party you are dealing with is this company or this person. Read the fact on the filing you are checking, because a fact that matches a lower candidate may point to a different company than the name did. The facts travel in the URL of the charge, so Proceeds handles them on the way through, as it does `name`. They reach Proceeds on the first, unpaid request too. We hide them in our own logs, keep none of them in our tables and never repeat them in the answer.
 
 ## Decide what the answer means
 
