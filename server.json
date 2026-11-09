@@ -3,8 +3,20 @@
   "name": "com.registryverify/florida-sunbiz-business-kyb",
   "title": "Florida Business Verify (Sunbiz records)",
   "description": "Verify a Florida business in official Sunbiz records: status, agent, officers. 0.10 USDC via x402.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "websiteUrl": "https://registryverify.com",
+  "icons": [
+    {
+      "src": "https://registryverify.com/icon.png",
+      "mimeType": "image/png",
+      "sizes": ["512x512"]
+    },
+    {
+      "src": "https://registryverify.com/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    }
+  ],
   "repository": {
     "url": "https://github.com/ai-interact/registry-verify-agent-skill",
     "source": "github"
