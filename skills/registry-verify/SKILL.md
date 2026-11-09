@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida
-  version: "13"
+  version: "14"
 ---
 
 # Registry Verify: check a business against Florida records
@@ -96,9 +96,9 @@ preview lasts, it also lists the legal names of up to three candidate filings.
 It returns the charge URL for that name with `channel=mcp` added, and with
 `limit` and `home_state` when you sent `max_results` below 5 or `home_state`.
 Pay that URL as returned, adding only the facts in Check the facts you were told;
-the lookup costs the same 0.10 USDC. A name made only of words like Inc or LLC, or with no three
-letters or digits in a row, comes back with no charge URL. The preview searches
-current names only. The MCP server never takes a payment.
+the lookup costs the same 0.10 USDC. A name made only of words like Inc or LLC, or with fewer than 2
+letters or digits, comes back with no charge URL. A short name such as AB or 3M gets one. While an older search answers in place of the name search, a short or very broad name can also get none; try it again later.
+The preview searches current names only. The MCP server never takes a payment.
 
 ## What one paid answer contains
 
@@ -376,7 +376,7 @@ and events it read.
 filings. The event rules read the newest 20 events Florida filed for the
 filing from 1 January 2016 to the lookup date. For a code not listed here, act
 on its `severity` and quote its `sentence`. Shared records lists four more
-flags. `flag_rules.rules` does not list them: each names its rule in `rule`.
+flags. `flag_rules.rules` lists them last when the answer has `shared_records`.
 
 ## Name search
 
