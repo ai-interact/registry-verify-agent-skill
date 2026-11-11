@@ -5,13 +5,13 @@
     "email": "hello@registryverify.com"
   },
   "metadata": {
-    "description": "The Registry Verify agent skill: Florida business registry lookups that an AI agent pays for per call over x402."
+    "description": "The Registry Verify agent skill: Florida and New York business registry lookups that an AI agent pays for per call over x402."
   },
   "plugins": [
     {
       "name": "registry-verify",
       "source": "./",
-      "description": "Check a business against Florida's official corporate records before paying, onboarding, or contracting with it. 0.10 USDC per lookup over x402 on Base."
+      "description": "Check a business against Florida's or New York's official company records before paying, onboarding, or contracting with it. 0.10 USDC per lookup over x402 on Base."
     }
   ]
 }

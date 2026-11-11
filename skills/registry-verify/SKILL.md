@@ -1,29 +1,30 @@
 ---
 name: registry-verify
-description: Florida business entity lookup in official Florida Division of Corporations records, the data behind Sunbiz. Send a business name and get candidate matches with document number, status, filing type and date, registered agent, officers, home state, annual report status, status change history, and the Florida source file for each record. Use it for KYB before paying, onboarding, or contracting with a Florida company. Florida only. A result is a candidate name match, not proof of identity. 0.10 USDC per lookup over x402 on Base. Also use it when a user asks whether a company is registered or active in Florida, whether it has filed its Florida annual report, about an out of state company that says it does business in Florida, or holds an old name for a company.
-license: Proprietary. Florida records are public; answers are provided under the Registry Verify terms.
+description: Florida and New York business entity lookup in official state records: the Florida Division of Corporations (the data behind Sunbiz) and the New York Department of State. Send a business name and get candidate matches with document number, status, filing type and date, registered agent, officers (in New York, the chief executive), home state, annual report status (in New York, the biennial statement), status change history, and the state source file for each record. Use it for KYB before paying, onboarding, or contracting with a Florida or New York company. Each state has its own charge URL. A result is a candidate name match, not proof of identity. 0.10 USDC per lookup over x402 on Base. Also use it when a user asks whether a company is registered or active in Florida or New York, whether it has filed its Florida annual report or its New York biennial statement, about an out of state company that says it does business in Florida, or holds an old name for a company.
+license: Proprietary. Florida and New York records are public; answers are provided under the Registry Verify terms.
 compatibility: Needs internet access and an x402 version 2 client with a funded USDC wallet on the network named in the 402 response, which is Base mainnet.
 metadata:
   publisher: Registry Verify
   homepage: https://registryverify.com
   contact: hello@registryverify.com
-  coverage: Florida
-  version: "14"
+  coverage: Florida, New York
+  version: "15"
 ---
 
-# Registry Verify: check a business against Florida records
+# Registry Verify: check a business against Florida and New York records
 
 Registry Verify searches the Florida Division of Corporations public filing
 data for a business name and returns the matching filings with the source file
 each one came from. For each filing it also says which home state Florida's
 record names, whether the filing is current on its Florida annual report, and
 the last status change we recorded. Use it as the registry step of a Know Your
-Business check.
+Business check. Since 10 November 2026 it also searches New York's company register through a second charge URL; see New York companies.
 
 ## When to use it
 
 * Before paying an invoice, signing a contract, or onboarding a vendor or
-  customer whose business is in Florida.
+  customer whose business is in Florida or New York.
+* When a user asks whether a New York company is active, who its registered agent or chief executive is, or whether it has filed its biennial statement.
 * When a user asks whether a company is registered, active, or inactive in
   Florida, or who its registered agent or officers are.
 * When a user asks whether a Florida company has filed this year's annual
@@ -36,28 +37,25 @@ Business check.
 
 ## When not to use it
 
-* The business has no Florida connection. Coverage is Florida only, so a
-  search tells you nothing about other states.
+* The business has no Florida or New York connection. Coverage is Florida
+  and New York only, so a search tells you nothing about other states.
 * You need to confirm who a person is, screen sanctions, or check credit. The `person` check only says whether a name is on a filing.
 * You have no budget for the call. Every lookup is a payment. If the user has
   not authorized spending, ask before you pay.
 
 ## Make the call
 
-Send one GET request to the Proceeds charge URL. Put the legal business name
-in `name`, URL encoded.
+Send one GET request to the Proceeds charge URL. Put the legal business name in `name`, URL encoded.
 
 ```
 GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name=Publix%20Super%20Markets
 ```
 
-Optional: `limit` from 1 to 5 sets how many candidate filings come back
-(default 5).
+That URL is for Florida companies. New York companies have their own charge URL; see New York companies.
 
-Optional: `home_state` takes a two letter United States state code, such as
-`DE`, when the user already believes the company was formed in that state.
-Filings formed there are listed first, and the answer says plainly when no
-Florida registration was found for a company formed there.
+Optional: `limit` from 1 to 5 sets how many candidate filings come back (default 5).
+
+Optional: `home_state` takes a two letter United States state code, such as `DE`, when the user already believes the company was formed in that state. Filings formed there are listed first, and the answer says plainly when no Florida registration was found for a company formed there.
 
 ```
 GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name=Acme%20Holdings&home_state=DE
@@ -65,68 +63,36 @@ GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-busi
 
 Payment works like any x402 version 2 resource:
 
-1. The first request returns `402 Payment Required`. The JSON body and the
-   `PAYMENT-REQUIRED` header list the accepted payments: network, asset,
-   amount, and recipient.
-2. Your x402 client signs the payment and repeats the same request with the
-   payment attached.
+1. The first request returns `402 Payment Required`. The JSON body and the `PAYMENT-REQUIRED` header list the accepted payments: network, asset, amount, and recipient.
+2. Your x402 client signs the payment and repeats the same request with the payment attached.
 3. Proceeds settles the payment and returns our JSON answer.
 
-Read the network and amount from the 402 response. Do not assume them. The
-price is 0.10 USDC (amount `100000`, six decimals).
+Read the network and amount from the 402 response. Do not assume them. The price is 0.10 USDC (amount `100000`, six decimals).
 
-The paywall runs on Base mainnet (`eip155:8453`), so a lookup is paid with real
-USDC. Read the network from the 402 response anyway, and tell the user they are
-spending real money before you pay.
+The paywall runs on Base mainnet (`eip155:8453`), so a lookup is paid with real USDC. Read the network from the 402 response anyway, and tell the user they are spending real money before you pay.
 
-Proceeds documents compatible agent wallets at
-https://docs.myproceeds.xyz/agents/overview.md
+Proceeds documents compatible agent wallets at https://docs.myproceeds.xyz/agents/overview.md
 
-Call only the Proceeds charge URL. No other Registry Verify route accepts
-payment, and no API key is issued to buyers.
+Call only the Proceeds charge URL. No other Registry Verify route accepts payment, and no API key is issued to buyers.
 
 ## Free check over MCP (optional)
 
-If your client is connected to the Registry Verify MCP server at
-https://registryverify.com/mcp (Streamable HTTP, no sign in), you can first
-call its free tool `verify_florida_business` with `business_name`, and
-optionally `max_results` (1 to 5) and `home_state`. It checks the name and
-gives the date of the newest Florida file we hold. While the hourly free
-preview lasts, it also lists the legal names of up to three candidate filings.
-It returns the charge URL for that name with `channel=mcp` added, and with
-`limit` and `home_state` when you sent `max_results` below 5 or `home_state`.
-Pay that URL as returned, adding only the facts in Check the facts you were told;
-the lookup costs the same 0.10 USDC. A name made only of words like Inc or LLC, or with fewer than 2
-letters or digits, comes back with no charge URL. A short name such as AB or 3M gets one. While an older search answers in place of the name search, a short or very broad name can also get none; try it again later.
-The preview searches current names only. The MCP server never takes a payment.
+If your client is connected to the Registry Verify MCP server at https://registryverify.com/mcp (Streamable HTTP, no sign in), you can first call its free tool `verify_florida_business` with `business_name`, and optionally `max_results` (1 to 5) and `home_state`. It checks the name and gives the date of the newest Florida file we hold. While the hourly free preview lasts, it also lists the legal names of up to three candidate filings. It returns the charge URL for that name with `channel=mcp` added, and with `limit` and `home_state` when you sent `max_results` below 5 or `home_state`. Pay that URL as returned, adding only the facts in Check the facts you were told; the lookup costs the same 0.10 USDC. A name made only of words like Inc or LLC, or with fewer than 2 letters or digits, comes back with no charge URL. A short name such as AB or 3M gets one. While an older search answers in place of the name search, a short or very broad name can also get none; try it again later. The preview searches current names only. The MCP server never takes a payment.
 
 ## What one paid answer contains
 
 Every paid answer has these parts:
 
-* `matches`: up to five candidate Florida filings, closest name first. Each
-  one carries the filing's own fields (document number, name, status, filing
-  type and date, principal city and ZIP, registered agent, officers), the
-  Florida source file it came from, its home state, its annual report status,
-  and its status history.
-* `dataset`: what we searched. The coverage, the dates of the oldest and
-  newest Florida daily files we hold, when we last loaded data, and whether
-  the data is stale.
-* `history_begins_on` and `history_note`: the first date our status change
-  history covers, and what that means for older filings.
-* `same_name_across_home_states`: each name that a Florida filing and a filing
-  formed in another state both hold in these results. It is an empty list when
-  there is none.
+* `matches`: up to five candidate Florida filings, closest name first. Each one carries the filing's own fields (document number, name, status, filing type and date, principal city and ZIP, registered agent, officers), the Florida source file it came from, its home state, its annual report status, and its status history.
+* `dataset`: what we searched. The coverage, the dates of the oldest and newest Florida daily files we hold, when we last loaded data, and whether the data is stale.
+* `history_begins_on` and `history_note`: the first date our status change history covers, and what that means for older filings.
+* `same_name_across_home_states`: each name that a Florida filing and a filing formed in another state both hold in these results. It is an empty list when there is none.
 * `home_state_query`: present only when you sent `home_state`. It says how many of these filings name that state as their home state.
 * `result_interpretation`: one sentence each on what a match, a no match, a status, a similarity score, and a home state mean.
 * `claim_check`: present only when you send a fact to check. See Check the facts you were told.
-* Warning flags: `flag_rules`, and on each match `flags`, `review_suggested`
-  and `flags_not_checked`. See Warning flags.
-* `shared_records` on each match: how many Florida filings list the same
-  address, registered agent or officer. See Shared records.
-* Former names: `found_by`, `matched_name`, `renamed_on` and `name_history` on
-  each match, and `former_names_searched` and `former_name_coverage` for the
-  answer. See Former names.
+* Warning flags: `flag_rules`, and on each match `flags`, `review_suggested` and `flags_not_checked`. See Warning flags.
+* `shared_records` on each match: how many Florida filings list the same address, registered agent or officer. See Shared records.
+* Former names: `found_by`, `matched_name`, `renamed_on` and `name_history` on each match, and `former_names_searched` and `former_name_coverage` for the answer. See Former names.
 
 ## Read the answer
 
@@ -486,6 +452,24 @@ A match is evidence, not proof of identity: a fact agrees with Florida's record 
 * **No match.** No candidate was found in the covered Florida files. That does not prove the business does not exist. Try the exact legal name with its suffix (LLC, INC, CORP), check the spelling, and remember the company may be registered only in another state. Read `former_name_coverage` for what the former names we hold cover.
 * **Always** say a registry match is evidence about a filing, not proof of who you are dealing with.
 
+## New York companies
+
+Since 10 November 2026 Registry Verify also answers for New York companies, from the New York Department of State's company register on data.ny.gov (about 7.2 million companies, active and inactive, updated every day). Use it when the company is formed in New York or registered to do business there. New York has its own charge URL, at the same 0.10 USDC, paid the same way:
+
+```
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-new-york-business?name=Pfizer%20Inc
+```
+
+Optional: `limit` from 1 to 5. The Florida only parameters (`home_state`, `ein`, `zip`, `address`, `person`) are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP check covers Florida only for now.
+
+Each New York match carries `dos_id` (also in `doc_number`), `name`, `status_label`, `entity_type_label`, `formed_on`, `county` and `home_state.sentence`; `history.status_sentence` with the five newest filings and, after a dissolution by proclamation, `history.warning`; `biennial_statement.state` (`filed`, `due`, `past_due`, `not_due_yet`, `inactive`, `not_required` or `unknown`) and `biennial_statement.sentence`, since New York asks business corporations and LLCs for one every two years; the `service_of_process`, `registered_agent`, `chief_executive` and `principal_office` addresses, each null when New York holds none; `former_names` and `fictitious_names`, which the search also covers (`found_by` says which name matched); and `provenance`, the data.ny.gov file and New York's own record search.
+
+Read `not_covered` and tell the user what it says when it matters: New York lists no officers beyond the chief executive, and its LLCs name no members or managers. Shared record counts, warning flags and fact checks are Florida only. New York publishes no EIN. When `dataset.stale` is true, our New York data is more than ten days old; say so.
+
+How often the right company comes first: on 10 November 2026 we sent 348 test names, frozen before the search ran on them, to the production New York search. The right company came first for 345 of 348 (99.1%, 95% interval 97.4% to 99.8%) and was among the five answers for all 348. The three misses were near duplicates. Test names and answers: https://registryverify.com/new-york-name-match-set.csv and https://registryverify.com/new-york-name-match-results.json
+
+New York says its open data is for general information and is not an official record. For a certified record, the user can ask the Department of State.
+
 ## Errors
 
 * `402`: no payment, or the payment failed. Nothing was returned.
@@ -498,7 +482,7 @@ the time of the call and the payment id.
 
 ## Limits
 
-* Florida only. At most five candidate filings per call.
+* Florida and New York only, each through its own charge URL. At most five candidate filings per call.
 * Search is by business name. An EIN, address or person can only be checked against the filings a name finds; none of them finds a filing on its own. Shared record counts never say which filings share a record.
 * The home state comes from Florida's record of the company, not from the other state's register. We do not check whether the company is in good standing where it was formed.
 * The annual report status comes from Florida's files as we last loaded them, so a report filed after that file may not show yet.
