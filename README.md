@@ -17,8 +17,11 @@ Website: https://registryverify.com
 
 ## What one lookup returns
 
-You send a business name. You get back up to five candidate filings from the
-Florida Division of Corporations data, the data behind Sunbiz. Each filing has:
+You send a business name to the charge URL of the state you are checking:
+Florida, New York or California. Each lookup costs 0.10 USDC.
+
+A Florida answer has up to five candidate filings from the Florida Division of
+Corporations data, the data behind Sunbiz. Each filing has:
 
 * the Florida document number, which anyone can check on Sunbiz
 * the status Florida reports (active or inactive), the filing type and the
@@ -33,7 +36,7 @@ Florida Division of Corporations data, the data behind Sunbiz. Each filing has:
   last status change we recorded
 * the Florida source file the record came from
 
-The answer as a whole also says how current the data is, notes when a Florida
+The Florida answer as a whole also says how current the data is, notes when a Florida
 filing and a filing formed in another state carry the same name, and, when you
 send `home_state`, says how many candidates were formed in that state.
 
@@ -97,17 +100,22 @@ https://docs.myproceeds.xyz/agents/overview.md
 
 ## The call
 
+Each state has its own charge URL:
+
 ```
 GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name=<business name>
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-new-york-business?name=<business name>
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name=<business name>
 ```
 
 * `name` is required: the business name, URL encoded, 2 to 200 characters.
-* `limit` is optional: how many candidate filings to return, 1 to 5. The
-  default is 5.
-* `home_state` is optional: a two letter United States state code, such as
-  `DE`, when you already believe the company was formed in that state.
+* `limit` is optional: how many candidates to return, 1 to 5. The default is 5.
+* `home_state` is optional and read for Florida only: a two letter United
+  States state code, such as `DE`, when you already believe the company was
+  formed in that state.
 
-Call only this charge URL. No other Registry Verify address accepts payment.
+Call only these three charge URLs. No other Registry Verify address accepts
+payment.
 
 The OpenAPI description of the call, with the answer schema, is at
 https://registryverify.com/openapi.json
@@ -138,10 +146,12 @@ same file the website serves at https://registryverify.com/skill.md.
 ## Use it as an MCP server
 
 https://registryverify.com/mcp is a free MCP server (Streamable HTTP, no sign
-in) with one tool, `verify_florida_business`. It checks the name, gives the
-date of the newest Florida file we hold, lists the legal names of up to three
-candidate filings while the hourly free preview lasts, and returns the charge
-URL for the full record. The full record costs 0.10 USDC, paid at that URL by
+in) with one tool for each state: `verify_florida_business`,
+`verify_new_york_business` and `verify_california_business`. Each tool checks
+the name, gives the date of the newest data we hold for that state, lists the
+legal names of up to three candidates while the hourly free preview lasts, and
+returns that state's charge URL for the full record. One preview allowance
+covers all three tools. The full record costs 0.10 USDC, paid at that URL by
 your own x402 wallet, such as the AgentCash MCP server. Claude, Claude Code and
 Cursor have no wallet of their own, so without one the agent stops at the
 charge URL. The MCP server never takes a payment and never sees a wallet or a key.
@@ -175,17 +185,21 @@ charge URL. The MCP server never takes a payment and never sees a wallet or a ke
   search says nothing about other states.
 * Search is by business name. EIN, address, and officer search are not
   available yet.
-* The data comes from Florida's public daily and quarterly files, so a filing
-  made today may not be in it yet. The answer says how new the data is.
+* The data comes from each state's public files. Florida and New York are
+  updated every day. California's new companies are updated every week and its
+  statuses every month. A filing made today may not be in the data yet. Every
+  answer says how new its data is.
 * Not affiliated with the Florida or the New York Department of State, or the
   California Secretary of State.
 
 ## More
 
-* How an AI agent checks a Florida LLC:
-  https://registryverify.com/guides/verify-a-florida-llc-with-an-ai-agent
+* How an AI agent checks a company in state records:
+  https://registryverify.com/guides/verify-a-company-with-an-ai-agent
 * Every field in an answer and where it comes from:
-  https://registryverify.com/florida-company-data
+  https://registryverify.com/company-data
+* The paid API for each state:
+  https://registryverify.com/business-lookup-api
 * Pricing and a settled test payment on Basescan:
   https://registryverify.com/pricing
 * Contact: hello@registryverify.com

@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.registryverify/florida-sunbiz-business-kyb",
-  "title": "Florida Business Verify (Sunbiz records)",
-  "description": "Verify a Florida business in official Sunbiz records: status, agent, officers. 0.10 USDC via x402.",
-  "version": "1.0.1",
+  "title": "Registry Verify: Florida, New York, California",
+  "description": "Verify a Florida, New York or California business in official state records. 0.10 USDC via x402.",
+  "version": "1.1.0",
   "websiteUrl": "https://registryverify.com",
   "icons": [
     {
@@ -29,15 +29,23 @@
   ],
   "_meta": {
     "io.modelcontextprotocol.registry/publisher-provided": {
-      "tool": "verify_florida_business",
+      "tools": [
+        "verify_florida_business",
+        "verify_new_york_business",
+        "verify_california_business"
+      ],
       "price": "0.10",
       "asset": "USDC",
       "network": "eip155:8453",
       "protocol": "x402 v2 over HTTP",
       "paid_by": "the buyer's own x402 wallet, at the pay URL the tool returns; the MCP server never receives payment or keys",
-      "charge_url": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name={name}&channel=mcp",
-      "coverage": "Florida only",
-      "affiliation": "Not affiliated with the Florida Department of State"
+      "charge_urls": {
+        "florida": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name={name}&channel=mcp",
+        "new_york": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-new-york-business?name={name}&channel=mcp",
+        "california": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name={name}&channel=mcp"
+      },
+      "coverage": "Florida, New York and California",
+      "affiliation": "Not affiliated with the Florida Department of State, the New York Department of State or the California Secretary of State"
     }
   }
 }
