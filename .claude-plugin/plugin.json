@@ -1,6 +1,6 @@
 {
   "name": "registry-verify",
-  "version": "15.0.0",
+  "version": "17.0.0",
   "description": "Check a business against Florida's or New York's official company records before paying, onboarding, or contracting with it. 0.10 USDC per lookup over x402 on Base, with no account or API key.",
   "author": {
     "name": "Registry Verify",

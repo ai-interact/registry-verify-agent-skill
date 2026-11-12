@@ -8,7 +8,7 @@ metadata:
   homepage: https://registryverify.com
   contact: hello@registryverify.com
   coverage: Florida, New York, California
-  version: "16"
+  version: "17"
 ---
 
 # Registry Verify: check a business against Florida, New York and California records
@@ -258,6 +258,7 @@ formed in another state, has its Florida registration revoked.
 * `dataset.status_lag` says how a status can lag. Between Florida's quarterly files a status comes from Florida's daily event files, and those files miss some events, so a filing can show as active after it closed, or as inactive after it was reinstated, until the next quarterly file. The same gap can leave a warning flag out. When a decision depends on status, tell the user and suggest checking the filing on Florida's Sunbiz site.
 * `dataset.event_files_repeated` lists the days since the last quarterly file on which Florida posted the previous day's event file again, oldest first. Events filed around those days are the most likely to be missing. It is null when we could not read them.
 * `dataset.last_ingested_at` is when our last import finished and `dataset.source_retrieved_at` when we last downloaded from Florida. `dataset.stale` is true when that last import finished more than seven days ago. If it is true, tell the user how old the data is.
+* We load Florida's daily files every day, on top of its quarterly snapshot. The date now, with the record count: https://registryverify.com/data-status
 * `dataset.coverage`, `dataset.quarterly_snapshot_loaded`, `dataset.record_count` and the file counts say what we searched. `dataset.expected_source_records`, `dataset.imported_records`, `dataset.quarantined_records` and `dataset.import_status` describe our last import.
 * `dataset.complete_registry` and `dataset.authoritative_no_match` are false on every answer, because we do not claim that the files we hold contain every Florida filing. `dataset.warning` says so in one sentence.
 
@@ -464,7 +465,7 @@ Optional: `limit` from 1 to 5. The Florida only parameters (`home_state`, `ein`,
 
 Each New York match carries `dos_id` (also in `doc_number`), `name`, `status_label`, `entity_type_label`, `formed_on`, `county` and `home_state.sentence`; `history.status_sentence` with the five newest filings and, after a dissolution by proclamation, `history.warning`; `biennial_statement.state` (`filed`, `due`, `past_due`, `not_due_yet`, `inactive`, `not_required` or `unknown`) and `biennial_statement.sentence`, since New York asks business corporations and LLCs for one every two years; the `service_of_process`, `registered_agent`, `chief_executive` and `principal_office` addresses, each null when New York holds none; `former_names` and `fictitious_names`, which the search also covers (`found_by` says which name matched); and `provenance`, the data.ny.gov file and New York's own record search.
 
-Read `not_covered` and tell the user what it says when it matters: New York lists no officers beyond the chief executive, and its LLCs name no members or managers. Shared record counts, warning flags and fact checks are Florida only. New York publishes no EIN. When `dataset.stale` is true, our New York data is more than ten days old; say so.
+Read `not_covered` and tell the user what it says when it matters: New York lists no officers beyond the chief executive, and its LLCs name no members or managers. Shared record counts, warning flags and fact checks are Florida only. New York publishes no EIN. `dataset.source_file_date_end` is the date of the newest New York file we loaded; when `dataset.stale` is true, our New York data is more than ten days old; say so. The date now: https://registryverify.com/data-status/new-york
 
 How often the right company comes first: on 10 November 2026 we sent 348 test names, frozen before the search ran on them, to the production New York search. The right company came first for 345 of 348 (99.1%, 95% interval 97.4% to 99.8%) and was among the five answers for all 348. The three misses were near duplicates. Test names and answers: https://registryverify.com/new-york-name-match-set.csv and https://registryverify.com/new-york-name-match-results.json
 
@@ -478,7 +479,7 @@ Since 12 November 2026 Registry Verify also answers for California companies, fr
 GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name=Apple%20Inc
 ```
 
-Optional: `limit` from 1 to 5. The Florida only parameters are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP check covers Florida only for now. Every California answer states two dates, and you should tell the user both: `dataset.status_data_through` (statuses are as of the last day of California's newest monthly file) and `dataset.new_companies_through` (companies first filed through that day are included, from the weekly files). A company suspended or revived after the monthly file's last day keeps its earlier status here until the next monthly file. Each match's `record_dates.sentence` says which file its record came from. When `dataset.stale` is true, `dataset.stale_reasons` says which file is late; say so.
+Optional: `limit` from 1 to 5. The Florida only parameters are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP check covers Florida only for now. Every California answer states two dates, and you should tell the user both: `dataset.status_data_through` (statuses are as of the last day of California's newest monthly file) and `dataset.new_companies_through` (companies first filed through that day are included, from the weekly files). A company suspended or revived after the monthly file's last day keeps its earlier status here until the next monthly file. Each match's `record_dates.sentence` says which file its record came from. `dataset.stale` is true when the weekly data is more than 9 days old or the monthly data more than 35 days old, and `dataset.stale_reasons` says which file is late; say so. The dates now: https://registryverify.com/data-status/california
 
 Each California match carries `entity_number` (also in `doc_number`), `name`, `status` in California's own words with `status_meaning` (for a suspension, which agency acted and when) and `is_active` (true only for plain Active); `standing`, California's flags for the Secretary of State, the Franchise Tax Board and the agent, with `standing.sentence`; `entity_type`, `formed_on`, `home_state.sentence` and `home_state.name_in_home_state`; the `principal_office`, `mailing_address` and `california_office` addresses; `agent_for_service`; up to 25 `officers.listed` from the latest Statement of Information, with `officers.sentence`; and `statement_of_information.sentence`. The search covers a company's name in its home state as well as its California name (`found_by` says which name matched).
 
