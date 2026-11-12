@@ -1,30 +1,31 @@
 ---
 name: registry-verify
-description: Florida and New York business entity lookup in official state records: the Florida Division of Corporations (the data behind Sunbiz) and the New York Department of State. Send a business name and get candidate matches with document number, status, filing type and date, registered agent, officers (in New York, the chief executive), home state, annual report status (in New York, the biennial statement), status change history, and the state source file for each record. Use it for KYB before paying, onboarding, or contracting with a Florida or New York company. Each state has its own charge URL. A result is a candidate name match, not proof of identity. 0.10 USDC per lookup over x402 on Base. Also use it when a user asks whether a company is registered or active in Florida or New York, whether it has filed its Florida annual report or its New York biennial statement, about an out of state company that says it does business in Florida, or holds an old name for a company.
-license: Proprietary. Florida and New York records are public; answers are provided under the Registry Verify terms.
+description: Florida, New York and California business entity lookup in official state records: the Florida Division of Corporations (the data behind Sunbiz), the New York Department of State and the California Secretary of State. Send a business name and get candidate matches with document number, status, filing type and date, registered agent, officers (in New York, the chief executive), home state, annual report status (in New York, the biennial statement; in California, the Statement of Information), status change history (Florida and New York), and the state source file for each record. Use it for KYB before paying, onboarding, or contracting with a Florida, New York or California company. Each state has its own charge URL. A result is a candidate name match, not proof of identity. 0.10 USDC per lookup over x402 on Base. Also use it when a user asks whether a company is registered or active in one of these states, or is current on its annual report there.
+license: Proprietary. Florida, New York and California records are public; answers are provided under the Registry Verify terms.
 compatibility: Needs internet access and an x402 version 2 client with a funded USDC wallet on the network named in the 402 response, which is Base mainnet.
 metadata:
   publisher: Registry Verify
   homepage: https://registryverify.com
   contact: hello@registryverify.com
-  coverage: Florida, New York
-  version: "15"
+  coverage: Florida, New York, California
+  version: "16"
 ---
 
-# Registry Verify: check a business against Florida and New York records
+# Registry Verify: check a business against Florida, New York and California records
 
 Registry Verify searches the Florida Division of Corporations public filing
 data for a business name and returns the matching filings with the source file
 each one came from. For each filing it also says which home state Florida's
 record names, whether the filing is current on its Florida annual report, and
 the last status change we recorded. Use it as the registry step of a Know Your
-Business check. Since 10 November 2026 it also searches New York's company register through a second charge URL; see New York companies.
+Business check. Since 10 November 2026 it also searches New York's company register, and since 12 November 2026 California's, each through its own charge URL; see New York companies and California companies.
 
 ## When to use it
 
 * Before paying an invoice, signing a contract, or onboarding a vendor or
-  customer whose business is in Florida or New York.
+  customer whose business is in Florida, New York or California.
 * When a user asks whether a New York company is active, who its registered agent or chief executive is, or whether it has filed its biennial statement.
+* When a user asks whether a California company is active or suspended, who its agent or officers are, or when it last filed a Statement of Information.
 * When a user asks whether a company is registered, active, or inactive in
   Florida, or who its registered agent or officers are.
 * When a user asks whether a Florida company has filed this year's annual
@@ -37,8 +38,7 @@ Business check. Since 10 November 2026 it also searches New York's company regis
 
 ## When not to use it
 
-* The business has no Florida or New York connection. Coverage is Florida
-  and New York only, so a search tells you nothing about other states.
+* The business has no Florida, New York or California connection. Coverage is those three states only, so a search tells you nothing about other states.
 * You need to confirm who a person is, screen sanctions, or check credit. The `person` check only says whether a name is on a filing.
 * You have no budget for the call. Every lookup is a payment. If the user has
   not authorized spending, ask before you pay.
@@ -51,7 +51,7 @@ Send one GET request to the Proceeds charge URL. Put the legal business name in 
 GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name=Publix%20Super%20Markets
 ```
 
-That URL is for Florida companies. New York companies have their own charge URL; see New York companies.
+That URL is for Florida companies. New York and California companies have charge URLs of their own; see New York companies and California companies.
 
 Optional: `limit` from 1 to 5 sets how many candidate filings come back (default 5).
 
@@ -470,6 +470,22 @@ How often the right company comes first: on 10 November 2026 we sent 348 test na
 
 New York says its open data is for general information and is not an official record. For a certified record, the user can ask the Department of State.
 
+## California companies
+
+Since 12 November 2026 Registry Verify also answers for California companies, from the California Secretary of State's company register (bizfile Online bulk data: about 9.4 million companies, active and inactive, with their agents and officers). Use it when the company is formed in California or registered to do business there. California has its own charge URL, at the same 0.10 USDC, paid the same way:
+
+```
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name=Apple%20Inc
+```
+
+Optional: `limit` from 1 to 5. The Florida only parameters are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP check covers Florida only for now. Every California answer states two dates, and you should tell the user both: `dataset.status_data_through` (statuses are as of the last day of California's newest monthly file) and `dataset.new_companies_through` (companies first filed through that day are included, from the weekly files). A company suspended or revived after the monthly file's last day keeps its earlier status here until the next monthly file. Each match's `record_dates.sentence` says which file its record came from. When `dataset.stale` is true, `dataset.stale_reasons` says which file is late; say so.
+
+Each California match carries `entity_number` (also in `doc_number`), `name`, `status` in California's own words with `status_meaning` (for a suspension, which agency acted and when) and `is_active` (true only for plain Active); `standing`, California's flags for the Secretary of State, the Franchise Tax Board and the agent, with `standing.sentence`; `entity_type`, `formed_on`, `home_state.sentence` and `home_state.name_in_home_state`; the `principal_office`, `mailing_address` and `california_office` addresses; `agent_for_service`; up to 25 `officers.listed` from the latest Statement of Information, with `officers.sentence`; and `statement_of_information.sentence`. The search covers a company's name in its home state as well as its California name (`found_by` says which name matched).
+
+Read `not_covered` and tell the user what it says when it matters: California's file has no status history and no former names, so a company is not found by a name it used before. Shared record counts, warning flags and fact checks are Florida only. California publishes no EIN.
+
+How often the right company comes first: on 12 November 2026 we sent 346 test names, frozen before the search ran on them, to the production California search. The right company came first for 342 of 346 (98.8%, 95% interval 97.0% to 99.6%) and was among the five answers for 344 of 346. Test names and answers: https://registryverify.com/california-name-match-set.csv and https://registryverify.com/california-name-match-results.json. California publishes this data without a promise of accuracy. For proof of status, the user can ask the Secretary of State for a certificate of status.
+
 ## Errors
 
 * `402`: no payment, or the payment failed. Nothing was returned.
@@ -482,7 +498,7 @@ the time of the call and the payment id.
 
 ## Limits
 
-* Florida and New York only, each through its own charge URL. At most five candidate filings per call.
+* Florida, New York and California only, each through its own charge URL. At most five candidate filings per call.
 * Search is by business name. An EIN, address or person can only be checked against the filings a name finds; none of them finds a filing on its own. Shared record counts never say which filings share a record.
 * The home state comes from Florida's record of the company, not from the other state's register. We do not check whether the company is in good standing where it was formed.
 * The annual report status comes from Florida's files as we last loaded them, so a report filed after that file may not show yet.

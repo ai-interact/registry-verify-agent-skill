@@ -2,9 +2,9 @@
 
 [![M8ven Score](https://m8ven.ai/badge/mcp/ai-interact-registry-verify-agent-skill-wt9ghm?v=e15181578bcf7bc7ecf353eab93ea0be)](https://m8ven.ai/mcp/ai-interact-registry-verify-agent-skill-wt9ghm?s=readme)
 
-Registry Verify lets an AI agent check a business against Florida's or New
-York's official company records before it pays, onboards, or signs with that
-business. The
+Registry Verify lets an AI agent check a business against Florida's, New
+York's or California's official company records before it pays, onboards, or
+signs with that business. The
 agent sends a business name and pays 0.10 USDC for the lookup over x402 on Base.
 There is no account to create and no API key.
 
@@ -45,6 +45,17 @@ York's status and the filing that set it, its home state, the service of
 process, registered agent, chief executive and principal office addresses,
 whether its biennial statement is on file, its newest filings, and its former
 and fictitious names. New York lists no officers beyond the chief executive.
+
+California companies have their own charge URL too, at the same price:
+`https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name=<name>`.
+A California answer comes from the California Secretary of State's register,
+about 9.4 million companies. Each company has its entity number, California's
+status and what it means, its standing with the Secretary of State and the
+Franchise Tax Board, its home state, its addresses, its agent for service of
+process, its officers, managers and members, and its latest Statement of
+Information. Every California answer states two dates: statuses as of the
+newest monthly file, and new companies through the newest weekly file.
+California's file has no status history and no former names.
 
 A result is a candidate name match, not proof of who you are dealing with. The
 skill explains how to tell one strong match from several candidates, and what a
@@ -160,13 +171,14 @@ charge URL. The MCP server never takes a payment and never sees a wallet or a ke
 
 ## Limits
 
-* Florida and New York only, each through its own charge URL. A search says
-  nothing about other states.
+* Florida, New York and California only, each through its own charge URL. A
+  search says nothing about other states.
 * Search is by business name. EIN, address, and officer search are not
   available yet.
 * The data comes from Florida's public daily and quarterly files, so a filing
   made today may not be in it yet. The answer says how new the data is.
-* Not affiliated with the Florida or the New York Department of State.
+* Not affiliated with the Florida or the New York Department of State, or the
+  California Secretary of State.
 
 ## More
 
