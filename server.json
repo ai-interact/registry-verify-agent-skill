@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.registryverify/florida-sunbiz-business-kyb",
-  "title": "Registry Verify: Florida, New York, California",
-  "description": "Verify a Florida, New York or California business in official state records. 0.10 USDC via x402.",
-  "version": "1.1.0",
+  "title": "Registry Verify: US business registry lookup",
+  "description": "Look up a US business in official state records: Florida, New York, California. 0.10 USDC via x402.",
+  "version": "1.2.0",
   "websiteUrl": "https://registryverify.com",
   "icons": [
     {
