@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.registryverify/florida-sunbiz-business-kyb",
   "title": "Registry Verify: US business registry lookup",
-  "description": "Look up a US business in official state records: Florida, New York, California. 0.10 USDC via x402.",
-  "version": "1.2.0",
+  "description": "Look up a US business in state records: Florida, New York, California, Colorado. 0.10 USDC via x402.",
+  "version": "1.4.0",
   "websiteUrl": "https://registryverify.com",
   "icons": [
     {
@@ -30,9 +30,7 @@
   "_meta": {
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tools": [
-        "verify_florida_business",
-        "verify_new_york_business",
-        "verify_california_business"
+        "verify_us_business"
       ],
       "price": "0.10",
       "asset": "USDC",
@@ -40,12 +38,13 @@
       "protocol": "x402 v2 over HTTP",
       "paid_by": "the buyer's own x402 wallet, at the pay URL the tool returns; the MCP server never receives payment or keys",
       "charge_urls": {
-        "florida": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name={name}&channel=mcp",
-        "new_york": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-new-york-business?name={name}&channel=mcp",
-        "california": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name={name}&channel=mcp"
+        "florida": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=FL&name={name}&channel=mcp",
+        "new_york": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=NY&name={name}&channel=mcp",
+        "california": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=CA&name={name}&channel=mcp",
+        "colorado": "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=CO&name={name}&channel=mcp"
       },
-      "coverage": "Florida, New York and California",
-      "affiliation": "Not affiliated with the Florida Department of State, the New York Department of State or the California Secretary of State"
+      "coverage": "Florida, New York, California and Colorado",
+      "affiliation": "Not affiliated with the Florida Department of State, the New York Department of State, the California Secretary of State or the Colorado Department of State"
     }
   }
 }

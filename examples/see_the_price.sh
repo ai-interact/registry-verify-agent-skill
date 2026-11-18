@@ -8,9 +8,9 @@
 # Usage: sh examples/see_the_price.sh
 set -eu
 
-CHARGE_URL="https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business"
+CHARGE_URL="https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business"
 
-curl -s -D - -o /dev/null "$CHARGE_URL?name=Publix%20Super%20Markets" \
+curl -s -D - -o /dev/null "$CHARGE_URL?state=FL&name=Publix%20Super%20Markets" \
   | awk 'tolower($1) == "payment-required:" { print $2 }' \
   | tr -d '\r' \
   | base64 -d \

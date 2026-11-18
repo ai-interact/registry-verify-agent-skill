@@ -3,9 +3,9 @@
 [![M8ven Score](https://m8ven.ai/badge/mcp/ai-interact-registry-verify-agent-skill-wt9ghm?v=e15181578bcf7bc7ecf353eab93ea0be)](https://m8ven.ai/mcp/ai-interact-registry-verify-agent-skill-wt9ghm?s=readme)
 
 Registry Verify lets an AI agent check a business against Florida's, New
-York's or California's official company records before it pays, onboards, or
-signs with that business. The
-agent sends a business name and pays 0.10 USDC for the lookup over x402 on Base.
+York's, California's or Colorado's official company records before it pays,
+onboards, or signs with that business. The agent sends a business name, and the
+state if it knows it, and pays 0.10 USDC for the lookup over x402 on Base.
 There is no account to create and no API key.
 
 This repository holds the agent skill that tells an agent when to use Registry
@@ -17,8 +17,10 @@ Website: https://registryverify.com
 
 ## What one lookup returns
 
-You send a business name to the charge URL of the state you are checking:
-Florida, New York or California. Each lookup costs 0.10 USDC.
+There is one charge URL for every state. You send a business name and, if you
+know it, the state: Florida, New York, California or Colorado. Each lookup costs
+0.10 USDC. A lookup without a state searches every state, one after another,
+and returns each state's own answer for the same 0.10 USDC.
 
 A Florida answer has up to five candidate filings from the Florida Division of
 Corporations data, the data behind Sunbiz. Each filing has:
@@ -40,8 +42,6 @@ The Florida answer as a whole also says how current the data is, notes when a Fl
 filing and a filing formed in another state carry the same name, and, when you
 send `home_state`, says how many candidates were formed in that state.
 
-New York companies have their own charge URL, at the same price:
-`https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-new-york-business?name=<name>`.
 A New York answer comes from the New York Department of State's register, about
 7.2 million companies updated every day. Each company has its DOS ID, New
 York's status and the filing that set it, its home state, the service of
@@ -49,8 +49,6 @@ process, registered agent, chief executive and principal office addresses,
 whether its biennial statement is on file, its newest filings, and its former
 and fictitious names. New York lists no officers beyond the chief executive.
 
-California companies have their own charge URL too, at the same price:
-`https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name=<name>`.
 A California answer comes from the California Secretary of State's register,
 about 9.4 million companies. Each company has its entity number, California's
 status and what it means, its standing with the Secretary of State and the
@@ -59,6 +57,13 @@ process, its officers, managers and members, and its latest Statement of
 Information. Every California answer states two dates: statuses as of the
 newest monthly file, and new companies through the newest weekly file.
 California's file has no status history and no former names.
+
+A Colorado answer comes from the Colorado Department of State's register, about
+3.1 million companies updated every day. Each company has its entity ID,
+Colorado's status (with what Colorado says it means for its main statuses), its entity type, its
+formation date, its home state, its principal and mailing addresses, and its
+registered agent with the agent's addresses. Colorado's file has no officers, no
+filing history and no former names.
 
 A result is a candidate name match, not proof of who you are dealing with. The
 skill explains how to tell one strong match from several candidates, and what a
@@ -87,12 +92,12 @@ requests from a USDC balance on Base. With a funded AgentCash wallet, this one
 command pays 0.10 USDC and prints the answer:
 
 ```
-npx agentcash@latest fetch "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name=Publix%20Super%20Markets"
+npx agentcash@latest fetch "https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=FL&name=Publix%20Super%20Markets"
 ```
 
 The same command is in [examples/agentcash.sh](examples/agentcash.sh), which
-takes the business name as an argument. This spends real money, so tell the
-person you work for before you run it.
+takes the business name and, optionally, the state as arguments. This spends
+real money, so tell the person you work for before you run it.
 
 Any other x402 version 2 client works too. Proceeds, the payment service that
 sells these lookups, lists compatible agent wallets at
@@ -100,22 +105,23 @@ https://docs.myproceeds.xyz/agents/overview.md
 
 ## The call
 
-Each state has its own charge URL:
+One charge URL serves every state:
 
 ```
-GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name=<business name>
-GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-new-york-business?name=<business name>
-GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name=<business name>
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?name=<business name>&state=<FL, NY, CA or CO>
 ```
 
 * `name` is required: the business name, URL encoded, 2 to 200 characters.
-* `limit` is optional: how many candidates to return, 1 to 5. The default is 5.
+* `state` is optional: `FL`, `NY`, `CA` or `CO`, or the state's name. Without
+  it, or with a state we do not cover, every state is searched one after
+  another, and the answer lists each state's own result in `states`.
+* `limit` is optional: how many candidates to return for each state, 1 to 5.
+  The default is 5.
 * `home_state` is optional and read for Florida only: a two letter United
   States state code, such as `DE`, when you already believe the company was
   formed in that state.
 
-Call only these three charge URLs. No other Registry Verify address accepts
-payment.
+Call only this charge URL. No other Registry Verify address accepts payment.
 
 The OpenAPI description of the call, with the answer schema, is at
 https://registryverify.com/openapi.json
@@ -146,15 +152,15 @@ same file the website serves at https://registryverify.com/skill.md.
 ## Use it as an MCP server
 
 https://registryverify.com/mcp is a free MCP server (Streamable HTTP, no sign
-in) with one tool for each state: `verify_florida_business`,
-`verify_new_york_business` and `verify_california_business`. Each tool checks
-the name, gives the date of the newest data we hold for that state, lists the
-legal names of up to three candidates while the hourly free preview lasts, and
-returns that state's charge URL for the full record. One preview allowance
-covers all three tools. The full record costs 0.10 USDC, paid at that URL by
-your own x402 wallet, such as the AgentCash MCP server. Claude, Claude Code and
-Cursor have no wallet of their own, so without one the agent stops at the
-charge URL. The MCP server never takes a payment and never sees a wallet or a key.
+in) with one tool, `verify_us_business`. It takes the business name and, if you
+know it, the state. For each state it checks (every state when you name none),
+it gives the date of the newest data we hold, lists the legal names of up to
+three candidates while the hourly free preview lasts, and returns the charge
+URL for the full record with that state filled in. The full record costs 0.10
+USDC, paid at that URL by your own x402 wallet, such as the AgentCash MCP
+server. Claude, Claude Code and Cursor have no wallet of their own, so without
+one the agent stops at the charge URL. The MCP server never takes a payment and
+never sees a wallet or a key.
 
 * Claude Code:
 
@@ -181,16 +187,16 @@ charge URL. The MCP server never takes a payment and never sees a wallet or a ke
 
 ## Limits
 
-* Florida, New York and California only, each through its own charge URL. A
-  search says nothing about other states.
+* Florida, New York, California and Colorado only, all through one charge URL.
+  A search says nothing about other states.
 * Search is by business name. EIN, address, and officer search are not
   available yet.
-* The data comes from each state's public files. Florida and New York are
-  updated every day. California's new companies are updated every week and its
-  statuses every month. A filing made today may not be in the data yet. Every
-  answer says how new its data is.
-* Not affiliated with the Florida or the New York Department of State, or the
-  California Secretary of State.
+* The data comes from each state's public files. Florida, New York and Colorado
+  are updated every day. California's new companies are updated every week and
+  its statuses every month. A filing made today may not be in the data yet.
+  Every answer says how new its data is.
+* Not affiliated with the Florida, New York or Colorado Department of State, or
+  the California Secretary of State.
 
 ## More
 
@@ -198,7 +204,7 @@ charge URL. The MCP server never takes a payment and never sees a wallet or a ke
   https://registryverify.com/guides/verify-a-company-with-an-ai-agent
 * Every field in an answer and where it comes from:
   https://registryverify.com/company-data
-* The paid API for each state:
+* The paid API for every state:
   https://registryverify.com/business-lookup-api
 * Pricing and a settled test payment on Basescan:
   https://registryverify.com/pricing

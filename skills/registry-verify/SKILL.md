@@ -1,64 +1,54 @@
 ---
 name: registry-verify
-description: Florida, New York and California business entity lookup in official state records: the Florida Division of Corporations (the data behind Sunbiz), the New York Department of State and the California Secretary of State. Send a business name and get candidate matches with document number, status, filing type and date, registered agent, officers (in New York, the chief executive), home state, annual report status (in New York, the biennial statement; in California, the Statement of Information), status change history (Florida and New York), and the state source file for each record. Use it for KYB before paying, onboarding, or contracting with a Florida, New York or California company. Each state has its own charge URL. A result is a candidate name match, not proof of identity. 0.10 USDC per lookup over x402 on Base. Also use it when a user asks whether a company is registered or active in one of these states, or is current on its annual report there.
-license: Proprietary. Florida, New York and California records are public; answers are provided under the Registry Verify terms.
+description: Florida, New York, California and Colorado business entity lookup in official state records: the Florida Division of Corporations (the data behind Sunbiz), the New York Department of State, the California Secretary of State and the Colorado Department of State. Send a business name and get candidate matches with document number, status, filing type and date, registered agent, officers (in New York, the chief executive), home state, annual report status (in New York, the biennial statement; in California, the Statement of Information), status change history (Florida and New York), and the state source file for each record. Use it for KYB before paying, onboarding, or contracting with a Florida, New York, California or Colorado company. One charge URL for every state; state= picks the state. A result is a candidate name match, not proof of identity. 0.10 USDC per lookup over x402 on Base. Also use it when a user asks whether a company is registered, active or current on its annual report in one of these states.
+license: Proprietary. Florida, New York, California and Colorado records are public; answers are provided under the Registry Verify terms.
 compatibility: Needs internet access and an x402 version 2 client with a funded USDC wallet on the network named in the 402 response, which is Base mainnet.
 metadata:
   publisher: Registry Verify
   homepage: https://registryverify.com
   contact: hello@registryverify.com
-  coverage: Florida, New York, California
-  version: "18"
+  coverage: Florida, New York, California, Colorado
+  version: "19"
 ---
 
-# Registry Verify: check a business against Florida, New York and California records
+# Registry Verify: check a business against Florida, New York, California and Colorado records
 
-Registry Verify searches the Florida Division of Corporations public filing
-data for a business name and returns the matching filings with the source file
-each one came from. For each filing it also says which home state Florida's
-record names, whether the filing is current on its Florida annual report, and
-the last status change we recorded. Use it as the registry step of a Know Your
-Business check. Since 10 November 2026 it also searches New York's company register, and since 12 November 2026 California's, each through its own charge URL; see New York companies and California companies.
+Registry Verify searches the Florida Division of Corporations public filing data for a business name and returns the matching filings with the source file each one came from. For each filing it also says which home state Florida's record names, whether the filing is current on its Florida annual report, and the last status change we recorded. Use it as the registry step of a Know Your Business check. It also searches New York's company register (since 10 November 2026), California's (since 12 November 2026) and Colorado's, all through one charge URL with the state in `state`; see New York companies, California companies and Colorado companies.
 
 ## When to use it
 
-* Before paying an invoice, signing a contract, or onboarding a vendor or
-  customer whose business is in Florida, New York or California.
+* Before paying an invoice, signing a contract, or onboarding a vendor or customer whose business is in Florida, New York, California or Colorado.
 * When a user asks whether a New York company is active, who its registered agent or chief executive is, or whether it has filed its biennial statement.
 * When a user asks whether a California company is active or suspended, who its agent or officers are, or when it last filed a Statement of Information.
-* When a user asks whether a company is registered, active, or inactive in
-  Florida, or who its registered agent or officers are.
-* When a user asks whether a Florida company has filed this year's annual
-  report, or whether Florida may dissolve it for missing the report.
-* When an out of state company (for example "a Delaware LLC") says it does
-  business in Florida. Florida registers those as foreign filings.
+* When a user asks whether a Colorado entity is in good standing, delinquent or dissolved, or who its registered agent is.
+* When a user asks whether a company is registered, active, or inactive in Florida, or who its registered agent or officers are.
+* When a user asks whether a Florida company has filed this year's annual report, or whether Florida may dissolve it for missing the report.
+* When an out of state company (for example "a Delaware LLC") says it does business in Florida. Florida registers those as foreign filings.
 * When a user holds an old name for a company, such as one on an old invoice.
-* When a user asks whether other companies list the same address, registered
-  agent or officer as this one.
+* When a user asks whether other companies list the same address, registered agent or officer as this one.
 
 ## When not to use it
 
-* The business has no Florida, New York or California connection. Coverage is those three states only, so a search tells you nothing about other states.
+* The business has no Florida, New York, California or Colorado connection. Coverage is those four states only, so a search tells you nothing about other states.
 * You need to confirm who a person is, screen sanctions, or check credit. The `person` check only says whether a name is on a filing.
-* You have no budget for the call. Every lookup is a payment. If the user has
-  not authorized spending, ask before you pay.
+* You have no budget for the call. Every lookup is a payment. If the user has not authorized spending, ask before you pay.
 
 ## Make the call
 
-Send one GET request to the Proceeds charge URL. Put the legal business name in `name`, URL encoded.
+Send one GET request to the Proceeds charge URL. Put the state in `state` (`FL`, `NY`, `CA` or `CO`) and the legal business name in `name`, URL encoded.
 
 ```
-GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name=Publix%20Super%20Markets
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=FL&name=Publix%20Super%20Markets
 ```
 
-That URL is for Florida companies. New York and California companies have charge URLs of their own; see New York companies and California companies.
+That lookup is for a Florida company. New York, California and Colorado companies use the same charge URL with `state=NY`, `CA` or `CO`; see New York companies, California companies and Colorado companies. Without `state`, one lookup searches every state, one after another, for the same 0.10 USDC: the answer lists each state's own answer in `states`, and `found_in` names the states where a candidate was found. A state we do not sell is searched the same way, and `state_not_offered` says so.
 
 Optional: `limit` from 1 to 5 sets how many candidate filings come back (default 5).
 
 Optional: `home_state` takes a two letter United States state code, such as `DE`, when the user already believes the company was formed in that state. Filings formed there are listed first, and the answer says plainly when no Florida registration was found for a company formed there.
 
 ```
-GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-florida-business?name=Acme%20Holdings&home_state=DE
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=FL&name=Acme%20Holdings&home_state=DE
 ```
 
 Payment works like any x402 version 2 resource:
@@ -77,7 +67,7 @@ Call only the Proceeds charge URL. No other Registry Verify route accepts paymen
 
 ## Free check over MCP (optional)
 
-If your client is connected to the Registry Verify MCP server at https://registryverify.com/mcp (Streamable HTTP, no sign in), you can first call its free tool `verify_florida_business` with `business_name`, and optionally `max_results` (1 to 5) and `home_state`. It checks the name and gives the date of the newest Florida file we hold. While the hourly free preview lasts, it also lists the legal names of up to three candidate filings. It returns the charge URL for that name with `channel=mcp` added, and with `limit` and `home_state` when you sent `max_results` below 5 or `home_state`. Pay that URL as returned, adding only the facts in Check the facts you were told; the lookup costs the same 0.10 USDC. A name made only of words like Inc or LLC, or with fewer than 2 letters or digits, comes back with no charge URL. A short name such as AB or 3M gets one. While an older search answers in place of the name search, a short or very broad name can also get none; try it again later. The preview searches current names only. For a New York or California company, call `verify_new_york_business` or `verify_california_business` the same way, with `business_name` and optionally `max_results`: each gives its own state's data dates, lists up to three candidate names from that state's own search while the preview lasts (one preview allowance covers all three tools), and returns that state's charge URL with `channel=mcp` added, and with `limit` when you sent `max_results` below 5. Each gives no charge URL while its state's data is stale or its status cannot be read. The MCP server never takes a payment.
+If your client is connected to the Registry Verify MCP server at https://registryverify.com/mcp (Streamable HTTP, no sign in), you can first call its one free tool, `verify_us_business`, with `business_name`, and optionally `state` (`FL`, `NY`, `CA` or `CO`, or the state's name) and `max_results` (1 to 5). With `state` it checks that state only; without it, every state, for when you do not know the company's state. For each state it gives that state's data dates, lists up to three candidate names from that state's own search while the hourly free preview lasts (one preview per state from one shared allowance), says in which states a candidate was found (`found_in`), and returns the charge URL with that state's code, the name and `channel=mcp`, and `limit` when you sent `max_results` below 5. Pay that URL as returned, adding only `home_state` for Florida or the facts in Check the facts you were told; each state is a separate paid lookup at 0.10 USDC. A name made only of words like Inc or LLC, or with fewer than 2 letters or digits, comes back with no charge URL, and so does a state the tool does not know. A short name such as AB or 3M gets one. A state whose data is stale or unread, or whose search failed just now, comes back with no charge URL and a `problem` that says why; when that was the only state asked for, the call is refused with the same words. While an older search answers in place of Florida's name search, a short or very broad name can also get no Florida charge URL; try it again later. Florida's free check searches current names only. The MCP server never takes a payment.
 
 ## What one paid answer contains
 
@@ -205,10 +195,7 @@ Every paid answer has these parts:
 }
 ```
 
-Angle brackets mark values that come from the Florida filing or from our
-data. Document 849374 is WALMART INC., a good first test. Every paid answer
-also carries the warning flag fields, which the sample under Warning flags
-shows, and the fields the samples under Shared records and Former names show.
+Angle brackets mark values that come from the Florida filing or from our data. Document 849374 is WALMART INC., a good first test. Every paid answer also carries the warning flag fields, which the sample under Warning flags shows, and the fields the samples under Shared records and Former names show.
 
 ### The filing
 
@@ -228,10 +215,7 @@ shows, and the fields the samples under Shared records and Former names show.
 
 ### Annual report
 
-Florida requires an annual report between 1 January and 1 May of every year
-after the year a filing was made. A filing still missing it on the third Friday
-of September is dissolved on the fourth Friday of September, or, for a company
-formed in another state, has its Florida registration revoked.
+Florida requires an annual report between 1 January and 1 May of every year after the year a filing was made. A filing still missing it on the third Friday of September is dissolved on the fourth Friday of September, or, for a company formed in another state, has its Florida registration revoked.
 
 * `annual_report.sentence` says what Florida's files show about this year's report. Read it and quote it.
 * `annual_report.state` is one of:
@@ -264,14 +248,9 @@ formed in another state, has its Florida registration revoked.
 
 ## Warning flags
 
-Every paid answer carries warning flags: a `flag_rules` block, and on each
-match `flags`, `review_suggested` and `flags_not_checked`. An answer without
-`flag_rules` was not checked against these rules, so the missing fields say
-nothing about the company.
+Every paid answer carries warning flags: a `flag_rules` block, and on each match `flags`, `review_suggested` and `flags_not_checked`. An answer without `flag_rules` was not checked against these rules, so the missing fields say nothing about the company.
 
-A warning flag is a short reason to look closer before you trust a company.
-Each flag states one fact from Florida's record and carries the record or
-event that caused it. A flag is never a fraud verdict, and there is no score.
+A warning flag is a short reason to look closer before you trust a company. Each flag states one fact from Florida's record and carries the record or event that caused it. A flag is never a fraud verdict, and there is no score.
 
 ```json
 {
@@ -306,23 +285,13 @@ event that caused it. A flag is never a fraud verdict, and there is no score.
 }
 ```
 
-The evidence shown is `agent_changed_recently`'s; each rule gives the fields
-and events it read.
+The evidence shown is `agent_changed_recently`'s; each rule gives the fields and events it read.
 
-* `rule` is the `code` and its version. A changed threshold or meaning gets a
-  new version, so you can tell a changed rule from a changed company.
-  `severity` is `high`, `review` or `info`, shown red, amber and grey
-  (`flag_rules.severity_display`), highest first.
-* Quote `sentence`; Florida's own words for an event stay in
-  `evidence.events[].description`. `date` is null when no single date applies.
-* `evidence` also holds the rule's thresholds (`window_days`,
-  `threshold_days`, `min_age_days`, `near_days`), `events[].name` (a rename's
-  new name) and `official_source_url`, Florida's data download page.
-* `review_suggested` is true when a `high` or `review` flag fired on the
-  match. `flags_not_checked` names each rule that could not run, with a
-  `reason`. An empty `flags` list does not mean the company is safe.
-* `flag_rules.as_of` is the day every window counts back from. An event filed
-  after `event_history_through` cannot raise a flag yet.
+* `rule` is the `code` and its version. A changed threshold or meaning gets a new version, so you can tell a changed rule from a changed company. `severity` is `high`, `review` or `info`, shown red, amber and grey (`flag_rules.severity_display`), highest first.
+* Quote `sentence`; Florida's own words for an event stay in `evidence.events[].description`. `date` is null when no single date applies.
+* `evidence` also holds the rule's thresholds (`window_days`, `threshold_days`, `min_age_days`, `near_days`), `events[].name` (a rename's new name) and `official_source_url`, Florida's data download page.
+* `review_suggested` is true when a `high` or `review` flag fired on the match. `flags_not_checked` names each rule that could not run, with a `reason`. An empty `flags` list does not mean the company is safe.
+* `flag_rules.as_of` is the day every window counts back from. An event filed after `event_history_through` cannot raise a flag yet.
 
 | Rule | Severity | Fires when |
 |---|---|---|
@@ -339,11 +308,7 @@ and events it read.
 | `officer_list_partial@1` | info | Florida says the filing has more than six officers but its data file carries six, so the list is partial. Sunbiz shows the full list. |
 | `name_differs_from_query@1` | info | The filing's name is not the name you sent, even ignoring case, punctuation and the legal ending, so check it is the company you mean. |
 
-`agent_changed_recently` and `name_changed_recently` also run on inactive
-filings. The event rules read the newest 20 events Florida filed for the
-filing from 1 January 2016 to the lookup date. For a code not listed here, act
-on its `severity` and quote its `sentence`. Shared records lists four more
-flags. `flag_rules.rules` lists them last when the answer has `shared_records`.
+`agent_changed_recently` and `name_changed_recently` also run on inactive filings. The event rules read the newest 20 events Florida filed for the filing from 1 January 2016 to the lookup date. For a code not listed here, act on its `severity` and quote its `sentence`. Shared records lists four more flags. `flag_rules.rules` lists them last when the answer has `shared_records`.
 
 ## Name search
 
@@ -431,7 +396,7 @@ Has this company gone by another name, and can an old name find it? The search c
 
 ## Check the facts you were told
 
-When a counterparty gave you an EIN, a ZIP code, an address or a person's name, send `ein`, `zip`, `address` or `person` next to `name`, in the same call for the same 0.10 USDC. The free MCP tool `verify_florida_business` does not take them, so add them to the pay URL it returns. The name still finds the filings, and each match then carries `claim_check` with only the facts you sent. Each fact has `state`, `reason`, `fields_compared`, `source_file`, `source_file_date` and `sentence`. The answer also carries `claim_check` at the top: `facts_supplied`, `facts_not_read`, `filings_compared`, `states`, `source_file_note` and `note`. Every field: https://registryverify.com/florida-company-data#check-the-facts
+When a counterparty gave you an EIN, a ZIP code, an address or a person's name, send `ein`, `zip`, `address` or `person` next to `name`, in the same call for the same 0.10 USDC. The free MCP tool `verify_us_business` does not take them, so add them to the Florida pay URL it returns. The name still finds the filings, and each match then carries `claim_check` with only the facts you sent. Each fact has `state`, `reason`, `fields_compared`, `source_file`, `source_file_date` and `sentence`. The answer also carries `claim_check` at the top: `facts_supplied`, `facts_not_read`, `filings_compared`, `states`, `source_file_note` and `note`. Every field: https://registryverify.com/florida-company-data#check-the-facts
 
 `state` is `matches` (the fact agrees with Florida's record for this filing), `does_not_match` (Florida's record holds this field and the fact does not agree; the record may only be out of date, so read `source_file_date`), `not_on_file` (Florida's record holds nothing we can compare, so this says nothing for or against the fact) or `not_checked` (we did not compare it, and `reason` and `sentence` say why). We never refuse a paid call over a fact: a value we cannot read comes back as `not_checked`, and the call is still charged.
 
@@ -455,13 +420,13 @@ A match is evidence, not proof of identity: a fact agrees with Florida's record 
 
 ## New York companies
 
-Since 10 November 2026 Registry Verify also answers for New York companies, from the New York Department of State's company register on data.ny.gov (about 7.2 million companies, active and inactive, updated every day). Use it when the company is formed in New York or registered to do business there. New York has its own charge URL, at the same 0.10 USDC, paid the same way:
+Since 10 November 2026 Registry Verify also answers for New York companies, from the New York Department of State's company register on data.ny.gov (about 7.2 million companies, active and inactive, updated every day). Use it when the company is formed in New York or registered to do business there. A New York lookup is the charge URL with `state=NY`, at the same 0.10 USDC, paid the same way:
 
 ```
-GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-new-york-business?name=Pfizer%20Inc
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=NY&name=Pfizer%20Inc
 ```
 
-Optional: `limit` from 1 to 5. The Florida only parameters (`home_state`, `ein`, `zip`, `address`, `person`) are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP tool `verify_new_york_business` checks a New York name and returns this charge URL for it (see Free check over MCP).
+Optional: `limit` from 1 to 5. The Florida only parameters (`home_state`, `ein`, `zip`, `address`, `person`) are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP tool `verify_us_business` with `state=NY` checks a New York name and returns this pay URL for it (see Free check over MCP).
 
 Each New York match carries `dos_id` (also in `doc_number`), `name`, `status_label`, `entity_type_label`, `formed_on`, `county` and `home_state.sentence`; `history.status_sentence` with the five newest filings and, after a dissolution by proclamation, `history.warning`; `biennial_statement.state` (`filed`, `due`, `past_due`, `not_due_yet`, `inactive`, `not_required` or `unknown`) and `biennial_statement.sentence`, since New York asks business corporations and LLCs for one every two years; the `service_of_process`, `registered_agent`, `chief_executive` and `principal_office` addresses, each null when New York holds none; `former_names` and `fictitious_names`, which the search also covers (`found_by` says which name matched); and `provenance`, the data.ny.gov file and New York's own record search.
 
@@ -473,19 +438,35 @@ New York says its open data is for general information and is not an official re
 
 ## California companies
 
-Since 12 November 2026 Registry Verify also answers for California companies, from the California Secretary of State's company register (bizfile Online bulk data: about 9.4 million companies, active and inactive, with their agents and officers). Use it when the company is formed in California or registered to do business there. California has its own charge URL, at the same 0.10 USDC, paid the same way:
+Since 12 November 2026 Registry Verify also answers for California companies, from the California Secretary of State's company register (bizfile Online bulk data: about 9.4 million companies, active and inactive, with their agents and officers). Use it when the company is formed in California or registered to do business there. A California lookup is the charge URL with `state=CA`, at the same 0.10 USDC, paid the same way:
 
 ```
-GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-california-business?name=Apple%20Inc
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=CA&name=Apple%20Inc
 ```
 
-Optional: `limit` from 1 to 5. The Florida only parameters are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP tool `verify_california_business` checks a California name and returns this charge URL for it (see Free check over MCP). Every California answer states two dates, and you should tell the user both: `dataset.status_data_through` (statuses are as of the last day of California's newest monthly file) and `dataset.new_companies_through` (companies first filed through that day are included, from the weekly files). A company suspended or revived after the monthly file's last day keeps its earlier status here until the next monthly file. Each match's `record_dates.sentence` says which file its record came from. `dataset.stale` is true when the weekly data is more than 9 days old or the monthly data more than 35 days old, and `dataset.stale_reasons` says which file is late; say so. The dates now: https://registryverify.com/data-status/california
+Optional: `limit` from 1 to 5. The Florida only parameters are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP tool `verify_us_business` with `state=CA` checks a California name and returns this pay URL for it (see Free check over MCP). Every California answer states two dates, and you should tell the user both: `dataset.status_data_through` (statuses are as of the last day of California's newest monthly file) and `dataset.new_companies_through` (companies first filed through that day are included, from the weekly files). A company suspended or revived after the monthly file's last day keeps its earlier status here until the next monthly file. Each match's `record_dates.sentence` says which file its record came from. `dataset.stale` is true when the weekly data is more than 9 days old or the monthly data more than 35 days old, and `dataset.stale_reasons` says which file is late; say so. The dates now: https://registryverify.com/data-status/california
 
 Each California match carries `entity_number` (also in `doc_number`), `name`, `status` in California's own words with `status_meaning` (for a suspension, which agency acted and when) and `is_active` (true only for plain Active); `standing`, California's flags for the Secretary of State, the Franchise Tax Board and the agent, with `standing.sentence`; `entity_type`, `formed_on`, `home_state.sentence` and `home_state.name_in_home_state`; the `principal_office`, `mailing_address` and `california_office` addresses; `agent_for_service`; up to 25 `officers.listed` from the latest Statement of Information, with `officers.sentence`; and `statement_of_information.sentence`. The search covers a company's name in its home state as well as its California name (`found_by` says which name matched).
 
 Read `not_covered` and tell the user what it says when it matters: California's file has no status history and no former names, so a company is not found by a name it used before. Shared record counts, warning flags and fact checks are Florida only. California publishes no EIN.
 
 How often the right company comes first: on 12 November 2026 we sent 346 test names, frozen before the search ran on them, to the production California search. The right company came first for 342 of 346 (98.8%, 95% interval 97.0% to 99.6%) and was among the five answers for 344 of 346. Test names and answers: https://registryverify.com/california-name-match-set.csv and https://registryverify.com/california-name-match-results.json. California publishes this data without a promise of accuracy. For proof of status, the user can ask the Secretary of State for a certificate of status.
+
+## Colorado companies
+
+Registry Verify also answers for Colorado entities, from the Colorado Department of State's Business Entities in Colorado dataset on data.colorado.gov (about 3.1 million entities, in every status Colorado records, from good standing to dissolved). Use it when the company is formed in Colorado or registered to do business there. A Colorado lookup is the charge URL with `state=CO`, at the same 0.10 USDC, paid the same way:
+
+```
+GET https://myproceeds.xyz/api/pay/cmupojkok000bjz043ecdfmec/verify-us-business?state=CO&name=Chipotle%20Mexican%20Grill
+```
+
+Optional: `limit` from 1 to 5. The Florida only parameters are accepted and change nothing; the answer lists them under `inputs_not_used`. The free MCP tool `verify_us_business` with `state=CO` checks a Colorado name and returns this pay URL for it (see Free check over MCP). Updated every day: Colorado updates its dataset once a day, and at 17:30 UTC we add every entity Colorado changed since our last update; once a week we compare every entity ID with Colorado's list and mark the entities it no longer lists. Tell the user `dataset.source_file_date_end`, the day Colorado last updated the dataset we hold. `dataset.stale` is true when our Colorado data is more than ten days old; say so. The date now: https://registryverify.com/data-status/colorado
+
+Each Colorado match carries `entity_id` (also in `doc_number`), `name` as Colorado writes it, `status` in Colorado's own words with `status_meaning` and `status_meaning_source` where a Colorado Secretary of State page defines the word (null for the words no Colorado page defines), `entity_type` with Colorado's label `entity_type_label`, `formed_on` (the date Colorado's dataset calls the creation date), `home_state.sentence`, the `principal_office` and `mailing_address`, and the registered agent in `registered_agent` with its street and mailing addresses. Colorado appends a note such as ", Delinquent October 1, 2013" to many names: `name` keeps it, the search reads the name without it, and `matched_name` gives the name that matched. `record.sentence` says when Colorado's dataset no longer lists the entity.
+
+Read `not_covered` and tell the user what it says when it matters: Colorado's dataset names no officers, only the registered agent, and holds no filing history and no former names, so an entity is not found by a name it used before. Shared record counts, warning flags and fact checks are Florida only. Colorado publishes no EIN.
+
+How often the right company comes first: on 18 November 2026 we sent 308 test names, frozen before the search ran on them, to a copy of the full Colorado register on our own database server, built by the same loader and search as production. The right entity came first for 302 of 308 (98.1%, 95% interval 95.8% to 99.2%) and was among the five answers for all 308. Test names and answers: https://registryverify.com/colorado-name-match-set.csv and https://registryverify.com/colorado-name-match-results.json. Colorado's open data is not a certified record. For proof of standing, the user can ask the Colorado Secretary of State for a certificate of good standing.
 
 ## Errors
 
@@ -494,18 +475,15 @@ How often the right company comes first: on 12 November 2026 we sent 346 test na
 * `429`: too many requests. Wait for the `Retry-After` seconds.
 * `502` or `504`: our data service failed. Each retry is a new payment, so retry at most once.
 
-If you were charged for an error answer, email hello@registryverify.com with
-the time of the call and the payment id.
+If you were charged for an error answer, email hello@registryverify.com with the time of the call and the payment id.
 
 ## Limits
 
-* Florida, New York and California only, each through its own charge URL. At most five candidate filings per call.
+* Florida, New York, California and Colorado only, all through one charge URL. At most five candidate filings per state.
 * Search is by business name. An EIN, address or person can only be checked against the filings a name finds; none of them finds a filing on its own. Shared record counts never say which filings share a record.
 * The home state comes from Florida's record of the company, not from the other state's register. We do not check whether the company is in good standing where it was formed.
 * The annual report status comes from Florida's files as we last loaded them, so a report filed after that file may not show yet.
 * Our status change history starts on `history_begins_on`. We hold no changes from before that date.
 * Data comes from Florida's public daily and quarterly files. To confirm a filing made today, ask a person to open Florida's own search in a browser: https://search.sunbiz.org/Inquiry/CorporationSearch/ByName (it refuses automated clients).
 
-More detail: https://registryverify.com/llms.txt
-OpenAPI description of the call: https://registryverify.com/openapi.json
-This skill on GitHub: https://github.com/ai-interact/registry-verify-agent-skill
+More detail: https://registryverify.com/llms.txt OpenAPI description of the call: https://registryverify.com/openapi.json This skill on GitHub: https://github.com/ai-interact/registry-verify-agent-skill
